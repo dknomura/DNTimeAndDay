@@ -1,0 +1,6 @@
+framework module DNTimeAndDay {
+  umbrella header "DNTimeAndDay-umbrella.h"
+
+  export *
+  module * { export * }
+}

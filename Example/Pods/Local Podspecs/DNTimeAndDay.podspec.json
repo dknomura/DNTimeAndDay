@@ -1,0 +1,22 @@
+{
+  "name": "DNTimeAndDay",
+  "version": "0.1.0",
+  "summary": "A short description of DNTimeAndDay.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://github.com/<GITHUB_USERNAME>/DNTimeAndDay",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "dnomnom": "dknomura@gmail.com"
+  },
+  "source": {
+    "git": "https://github.com/<GITHUB_USERNAME>/DNTimeAndDay.git",
+    "tag": "0.1.0"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "source_files": "DNTimeAndDay/Classes/**/*"
+}

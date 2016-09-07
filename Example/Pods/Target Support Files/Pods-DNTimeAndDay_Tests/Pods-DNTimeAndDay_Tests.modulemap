@@ -1,0 +1,6 @@
+framework module Pods_DNTimeAndDay_Tests {
+  umbrella header "Pods-DNTimeAndDay_Tests-umbrella.h"
+
+  export *
+  module * { export * }
+}

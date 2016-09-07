@@ -1,0 +1,22 @@
+PODS:
+  - DNTimeAndDay (0.1.0)
+  - Nimble (3.2.0)
+  - Quick (0.9.3)
+
+DEPENDENCIES:
+  - DNTimeAndDay (from `../`)
+  - Nimble (~> 3.0)
+  - Quick (~> 0.8)
+
+EXTERNAL SOURCES:
+  DNTimeAndDay:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  DNTimeAndDay: 8bcab15476039009e249bc393cda8e2684e1a3ea
+  Nimble: 703854335d181df169bbca9c97117b5cf8c47c1d
+  Quick: 13a2a2b19a5d8e3ed4fd0c36ee46597fd77ebf71
+
+PODFILE CHECKSUM: a1dbe1135a71f5a2ca917f7a69582caab3b84dae
+
+COCOAPODS: 1.0.1

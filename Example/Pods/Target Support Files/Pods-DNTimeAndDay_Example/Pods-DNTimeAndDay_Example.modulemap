@@ -1,0 +1,6 @@
+framework module Pods_DNTimeAndDay_Example {
+  umbrella header "Pods-DNTimeAndDay_Example-umbrella.h"
+
+  export *
+  module * { export * }
+}
