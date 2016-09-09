@@ -11,7 +11,7 @@ A simple model object to store and adjust time and day of the week. Increase/dec
 
 To run the example project, clone the repo,
 
-`git clone `
+`git clone https://github.com/dknomura/DNTimeAndDay.git`
 
 and run 
 
