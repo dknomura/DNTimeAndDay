@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/cocoapods/l/DNTimeAndDay.svg?style=flat)](http://cocoapods.org/pods/DNTimeAndDay)
 [![Platform](https://img.shields.io/cocoapods/p/DNTimeAndDay.svg?style=flat)](http://cocoapods.org/pods/DNTimeAndDay)
 
-A simple model object to store and adjust time and day of the week. Increase/decrease the time evenly** in intervals. Option to output the string value in 12/24-hour formats (4:00pm vs 16:00). Plans to include date (day, week, month, year).   
+A simple model object to store and adjust time and day of the week. Increase/decrease the time evenly** in intervals. Output the time string value in 12/24-hour formats (4:00pm vs 16:00). Plans to include date (day, week, month, year).   
 
 ## Example
 
