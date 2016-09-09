@@ -18,21 +18,22 @@
 
 import Foundation
 
-
-enum SPTimeAndDayError: ErrorType {
-    case invalidMinuteInterval(Int)
+public enum DNTimeAndDayError: ErrorType {
+    case invalidMinuteInterval(Int?)
 }
-struct SPTimeAndDay {
-    var dayOfWeek: SPDay
-    var time: SPTime
+public enum DNTimeFormat : Int {
+    case format24Hour = 0
+    case format12Hour
+}
+
+public struct DNTimeAndDay {
+    public var day: DNDay
+    public var time: DNTime
+    public var minuteInterval: Int?
     
-    enum SPTimeFormat : Int {
-        case format24Hour = 0
-        case format12Hour
-    }
-    enum SPDay: Int{
+    public enum DNDay: Int {
         case Sun = 1, Mon, Tues, Wed, Thurs, Fri, Sat
-        var stringValue: String {
+        public var stringValue: String {
             switch self {
             case .Sun: return "Sun"
             case .Mon: return "Mon"
@@ -43,29 +44,29 @@ struct SPTimeAndDay {
             case .Sat: return "Sat"
             }
         }
-        static let allValues: [SPDay] = [Sun, Mon, Tues, Wed, Thurs, Fri, Sat]
+        static let allValues: [DNDay] = [Sun, Mon, Tues, Wed, Thurs, Fri, Sat]
         enum DayError: ErrorType {
             case invalidString(String)
         }
-        mutating func increaseDay() {
+        public mutating func increaseDay() {
             var dayInt = self.rawValue
             if dayInt == 7 {
                 dayInt = 1
             } else {
                 dayInt += 1
             }
-            self = SPDay.init(rawValue: dayInt)!
+            self = DNDay.init(rawValue: dayInt)!
         }
-        mutating func decreaseDay() {
+        public mutating func decreaseDay() {
             var dayInt = self.rawValue
             if dayInt == 1 {
                 dayInt = 7
             } else {
                 dayInt -= 1
             }
-            self = SPDay.init(rawValue: dayInt)!
+            self = DNDay.init(rawValue: dayInt)!
         }
-        init?(stringValue:String) {
+        public init?(stringValue:String) {
             let lowerCase = stringValue.lowercaseString
             let rawValue: Int
             switch lowerCase {
@@ -89,13 +90,14 @@ struct SPTimeAndDay {
             self.init(rawValue: rawValue)
         }
     }
-    struct SPTime {
-        enum SPAmPm: String{
+    public struct DNTime {
+        enum DNAmPm: String{
             case am, pm, format24
             
         }
         var hour: Int
         var min: Int
+        
         init?(hour: Int, min:Int) {
             if (hour >= 0 && hour < 24) && (min >= 0 && min < 60) {
                 self.hour = hour
@@ -105,95 +107,13 @@ struct SPTimeAndDay {
                 return nil
             }
         }
-        
-        func stringValue(format:SPTimeFormat) -> String {
-            let minString: String
-            let hourString: String
-            var hour = self.hour
-            var amPM = ""
-            if format == SPTimeFormat.format12Hour {
-                if hour == 0 {
-                    hour = 12
-                    amPM = "am"
-                } else if hour < 12 {
-                    amPM = "am"
-                } else if hour == 12 {
-                    amPM = "pm"
-                }else if hour > 12 && hour < 24 {
-                    hour -= 12
-                    amPM = "pm"
-                }
-                hourString = String(hour)
-            } else {
-                if hour < 10 {
-                    hourString = "0" + String(hour)
-                } else {
-                    hourString = String(hour)
-                }
-            }
-            if self.min < 10 {
-                minString = "0" + String(self.min)
-            } else {
-                minString = String(self.min)
-            }
-            return hourString + ":" + minString + amPM
-        }
-        
-        mutating func increaseTimeInterval(minuteInterval:Int) throws {
-            guard minuteInterval > 0 else { throw SPTimeAndDayError.invalidMinuteInterval(minuteInterval) }
-            var setTime: SPTime = self
-            setTime.hour += Int(minuteInterval / 60)
-            let remainingMinutes = minuteInterval % 60
-            guard 60 % remainingMinutes == 0 else { throw SPTimeAndDayError.invalidMinuteInterval(minuteInterval) }
-            if remainingMinutes > 0 {
-                let loops: Int = (60 / remainingMinutes) - 1
-                if setTime.min >= (remainingMinutes * loops) {
-                    setTime.min = 0
-                    setTime.hour += 1
-                } else {
-                    for i in 1...loops {
-                        if setTime.min < remainingMinutes * i {
-                            setTime.min = remainingMinutes * i
-                            break
-                        }
-                    }
-                }
-            }
-            
-            self.hour = setTime.hour
-            self.min = setTime.min
-        }
-        mutating func decreaseTimeInterval(minuteInterval:Int) throws {
-            guard minuteInterval > 0 else { throw SPTimeAndDayError.invalidMinuteInterval(minuteInterval) }
-            var setTime: SPTime = self
-            setTime.hour += Int(minuteInterval / 60)
-            let remainingMinutes = minuteInterval % 60
-            guard 60 % remainingMinutes == 0 else { throw SPTimeAndDayError.invalidMinuteInterval(minuteInterval) }
-            if remainingMinutes > 0 {
-                let loops: Int = (60 / remainingMinutes) - 1
-                if setTime.min == 0 {
-                    setTime.min = remainingMinutes * loops
-                    setTime.hour -= 1
-                } else {
-                    for i in loops.stride(through: 0, by: -1) {
-                        if setTime.min > remainingMinutes * i {
-                            setTime.min = remainingMinutes * i
-                            break
-                        }
-                    }
-                }
-            }
-            self.hour = setTime.hour
-            self.min = setTime.min
-        }
-        
-        init?(userInputValue timeString:String) {
+        public init?(userInputValue timeString:String) {
             let lowerCaseStringValue = timeString.lowercaseString
             let periodRange = lowerCaseStringValue.rangeOfString(".")
             let colonRange = lowerCaseStringValue.rangeOfString(":")
             let pRange = lowerCaseStringValue.rangeOfString("p")
             let aRange = lowerCaseStringValue.rangeOfString("a")
-            var amOrPM: SPAmPm?
+            var amOrPM: DNAmPm?
             var hour, min:Int?
             // If minute value exists, then there is either '.' or ':'. The minute value will be multipled by the minute scale and if '.' the minute will need to be multiplied by 0.6
             var minuteScale: Double = 1.0
@@ -243,14 +163,95 @@ struct SPTimeAndDay {
             } else {
                 min = 0
             }
-            SPTime.adjustHourInput(&hour, amOrPM: amOrPM)
+            DNTime.adjustHourInput(&hour, amOrPM: amOrPM)
             guard min != nil && hour != nil else {
                 print("No hour and/or min in \(lowerCaseStringValue). hour: \(hour) min: \(min)")
                 return nil
             }
             self.init(hour:hour!, min: min!)
         }
-        static private func adjustHourInput(inout hour:Int?, amOrPM:SPAmPm?) {
+        public func stringValue(forFormat format:DNTimeFormat) -> String {
+            let minString: String
+            let hourString: String
+            var hour = self.hour
+            var amPM = ""
+            if format == DNTimeFormat.format12Hour {
+                if hour == 0 {
+                    hour = 12
+                    amPM = "am"
+                } else if hour < 12 {
+                    amPM = "am"
+                } else if hour == 12 {
+                    amPM = "pm"
+                }else if hour > 12 && hour < 24 {
+                    hour -= 12
+                    amPM = "pm"
+                }
+                hourString = String(hour)
+            } else {
+                if hour < 10 {
+                    hourString = "0" + String(hour)
+                } else {
+                    hourString = String(hour)
+                }
+            }
+            if self.min < 10 {
+                minString = "0" + String(self.min)
+            } else {
+                minString = String(self.min)
+            }
+            return hourString + ":" + minString + amPM
+        }
+        mutating func increase(byMinuteInterval minuteInterval:Int) throws {
+            guard minuteInterval > 0 else { throw DNTimeAndDayError.invalidMinuteInterval(minuteInterval) }
+            var setTime: DNTime = self
+            setTime.hour += Int(minuteInterval / 60)
+            let remainingMinutes = minuteInterval % 60
+            if remainingMinutes > 0 {
+                guard 60 % remainingMinutes == 0 else { throw DNTimeAndDayError.invalidMinuteInterval(minuteInterval) }
+                let loops: Int = (60 / remainingMinutes) - 1
+                if setTime.min >= (remainingMinutes * loops) {
+                    setTime.min = 0
+                    setTime.hour += 1
+                } else {
+                    for i in 1...loops {
+                        if setTime.min < remainingMinutes * i {
+                            setTime.min = remainingMinutes * i
+                            break
+                        }
+                    }
+                }
+            } else if remainingMinutes == 0 {
+                setTime.min = 0
+            }
+            
+            self.hour = setTime.hour
+            self.min = setTime.min
+        }
+        mutating func decrease(byMinuteInterval minuteInterval:Int) throws {
+            guard minuteInterval > 0 else { throw DNTimeAndDayError.invalidMinuteInterval(minuteInterval) }
+            var setTime: DNTime = self
+            setTime.hour += Int(minuteInterval / 60)
+            let remainingMinutes = minuteInterval % 60
+            if remainingMinutes > 0 {
+                guard 60 % remainingMinutes == 0 else { throw DNTimeAndDayError.invalidMinuteInterval(minuteInterval) }
+                let loops: Int = (60 / remainingMinutes) - 1
+                if setTime.min == 0 {
+                    setTime.min = remainingMinutes * loops
+                    setTime.hour -= 1
+                } else {
+                    for i in loops.stride(through: 0, by: -1) {
+                        if setTime.min > remainingMinutes * i {
+                            setTime.min = remainingMinutes * i
+                            break
+                        }
+                    }
+                }
+            }
+            self.hour = setTime.hour
+            self.min = setTime.min
+        }
+        static private func adjustHourInput(inout hour:Int?, amOrPM:DNAmPm?) {
             guard hour != nil else { return }
             var upperBound, lowerBound:Int
             if amOrPM != nil {
@@ -278,48 +279,25 @@ struct SPTimeAndDay {
         }
     }
     
-    mutating func increaseTimeInterval(minutes:Int) throws {
-        do {
-            try time.increaseTimeInterval(minutes)
-            if time.hour > 24 {
-                let dayChanger = Int(time.hour / 24)
-                time.hour = time.hour % 24
-                for _ in 0..<dayChanger { dayOfWeek.increaseDay() }
-                
-            }
-        } catch let error as NSError {
-            print("Error increasing interval by \(minutes). " + error.localizedDescription)
+    public mutating func increaseTimeInterval() throws {
+        try changeTime(increase: true)
+    }
+    public mutating func decreaseTimeInterval() throws {
+        try changeTime(increase: false)
+    }
+    private mutating func changeTime(increase increase:Bool) throws {
+        guard minuteInterval != nil else {
+            print("Unable to change time, property minute interval not set")
+            throw DNTimeAndDayError.invalidMinuteInterval(minuteInterval)
+        }
+        increase ? try time.increase(byMinuteInterval: minuteInterval!) : try time.decrease(byMinuteInterval: minuteInterval!)
+        if time.hour > 23 {
+            let dayCounter = Int(time.hour / 24)
+            time.hour = time.hour % 24
+            for _ in 0..<dayCounter { increase ? day.increaseDay() : day.decreaseDay() }
         }
     }
-    //    mutating private func changeTimeInterval(minutes:Int, change:(time:(Int) throws -> Void, day: () -> Void)) {
-    //        try change.time(minutes)
-    //        if time.hour > 24 {
-    //            let dayChanger = Int(time.hour / 24)
-    //            time.hour = time.hour % 24
-    //            for _ in 0..<dayChanger { change.day() }
-    //        }
-    //
-    //        do{
-    //        } catch SPTimeAndDayError.invalidMinuteInterval(let minute) {
-    //            print("Invalid minute interval: \(minute). Must be greater than 0 and evenly divide into 60")
-    //        } catch let error as NSError{
-    //            print("Error while changing time, interval: \(minutes). \(error.localizedDescription)")
-    //        }
-    //    }
-    mutating func decreaseTimeInterval(minutes: Int) {
-        do {
-            try time.increaseTimeInterval(minutes)
-            if time.hour > 24 {
-                let dayChanger = Int(time.hour / 24)
-                time.hour = time.hour % 24
-                for _ in 0..<dayChanger { dayOfWeek.increaseDay() }
-            }
-            
-        } catch let error as NSError {
-            print("Error decreasing interval by \(minutes). " + error.localizedDescription)
-        }
-    }
-    func nextStreetCleaning() -> SPTimeAndDay {
+    func nextStreetCleaningTimeAndDay() -> DNTimeAndDay {
         var returnTimeAndDay = self
         if returnTimeAndDay.time.hour < 15 && returnTimeAndDay.time.hour > 2 {
             if returnTimeAndDay.time.hour == 14 && returnTimeAndDay.time.min == 30 {
@@ -333,25 +311,25 @@ struct SPTimeAndDay {
         } else {
             returnTimeAndDay.time.hour = 3
             returnTimeAndDay.time.min = 0
-            returnTimeAndDay.dayOfWeek.increaseDay()
+            returnTimeAndDay.day.increaseDay()
         }
-        if returnTimeAndDay.dayOfWeek.rawValue == 1 {
-            returnTimeAndDay.dayOfWeek.increaseDay()
+        if returnTimeAndDay.day.rawValue == 1 {
+            returnTimeAndDay.day.increaseDay()
         }
-        return SPTimeAndDay.init(dayOfWeek: returnTimeAndDay.dayOfWeek, time: returnTimeAndDay.time)
+        return DNTimeAndDay.init(day: returnTimeAndDay.day, time: returnTimeAndDay.time)
     }
     
-    func previousValidTimeAndDay() -> SPTimeAndDay {
+    func previousStreetCleaningTimeAndDay() -> DNTimeAndDay {
         var returnTimeAndDay = self
-        if returnTimeAndDay.time.hour > 19 && (returnTimeAndDay.dayOfWeek.rawValue != 1 || returnTimeAndDay.dayOfWeek.rawValue != 7) {
+        if returnTimeAndDay.time.hour > 19 && (returnTimeAndDay.day.rawValue != 1 || returnTimeAndDay.day.rawValue != 7) {
             returnTimeAndDay.time.hour = 19
             returnTimeAndDay.time.min = 0
         } else if returnTimeAndDay.time.hour > 14 || (returnTimeAndDay.time.hour == 14 && returnTimeAndDay.time.min == 30) {
             returnTimeAndDay.time.hour = 14
             returnTimeAndDay.time.min = 0
         } else if returnTimeAndDay.time.hour < 3 {
-            returnTimeAndDay.dayOfWeek.decreaseDay()
-            if returnTimeAndDay.dayOfWeek.rawValue == 7 {
+            returnTimeAndDay.day.decreaseDay()
+            if returnTimeAndDay.day.rawValue == 7 {
                 returnTimeAndDay.time.hour = 13
                 returnTimeAndDay.time.min = 0
             } else {
@@ -359,49 +337,50 @@ struct SPTimeAndDay {
                 returnTimeAndDay.time.min = 0
             }
         }
-        if returnTimeAndDay.dayOfWeek.rawValue == 1 {
-            returnTimeAndDay.dayOfWeek.decreaseDay()
+        if returnTimeAndDay.day.rawValue == 1 {
+            returnTimeAndDay.day.decreaseDay()
             returnTimeAndDay.time.hour = 13
             returnTimeAndDay.time.min = 0
         }
-        return SPTimeAndDay.init(dayOfWeek: returnTimeAndDay.dayOfWeek, time: returnTimeAndDay.time)
+        return DNTimeAndDay.init(day: returnTimeAndDay.day, time: returnTimeAndDay.time)
     }
 }
-extension SPTimeAndDay {
-    init?(dayString:String, timeString:String) {
-        guard let initDay = SPDay.init(stringValue: dayString) else {
+public extension DNTimeAndDay {
+    public init(day: DNDay, time: DNTime) {
+        self.init(day: day, time: time, minuteInterval: nil)
+    }
+    public init?(dayString:String, timeString:String) {
+        guard let initDay = DNDay.init(stringValue: dayString) else {
             print("Unable to make day out of string: \(dayString)")
             return nil
         }
-        guard let initTime = SPTime.init(userInputValue: timeString) else {
+        guard let initTime = DNTime.init(userInputValue: timeString) else {
             print("Unable to make time out of string: \(timeString)")
             return nil
-            
         }
-        self.init(dayOfWeek:initDay, time: initTime)
+        self.init(day:initDay, time: initTime)
     }
-    init?(dayInt:Int, hourInt:Int, minInt:Int) {
-        guard let initDay = SPDay.init(rawValue: dayInt) else {
+    public init?(dayInt:Int, hourInt:Int, minInt:Int) {
+        guard let initDay = DNDay.init(rawValue: dayInt) else {
             print("Unable to make day out of int: \(dayInt)")
             return nil
         }
-        guard let initTime = SPTime.init(hour: hourInt, min: minInt) else {
+        guard let initTime = DNTime.init(hour: hourInt, min: minInt) else {
             print("Unable to make time out of hour: \(hourInt), and min: \(minInt)")
             return nil
         }
-        self.init(dayOfWeek:initDay, time: initTime)
+        self.init(day:initDay, time: initTime)
     }
-    init?(currentTimeAndDayWithFormat format: SPTimeFormat) {
+    public static func currentTimeAndDay() -> DNTimeAndDay {
         let date = NSDate()
         if let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian) {
             let hour = calendar.component(.Hour, fromDate: date)
             let minute = calendar.component(.Minute, fromDate: date)
             let day = calendar.component(.Weekday, fromDate: date)
-            self.init(dayInt: day, hourInt: hour, minInt: minute)
+            return DNTimeAndDay.init(dayInt: day, hourInt: hour, minInt: minute)!
         } else {
-            print("Unable to get current day, hour, and/or minutes, will return (2, 12, 0) respectively")
-            self.init(dayInt: 2, hourInt: 12, minInt: 0)
+            print("Unable initialize Gregorian calendar to get current day, hour, and/or minutes")
+            return DNTimeAndDay.init(dayInt: 2, hourInt: 12, minInt: 0)!
         }
     }
 }
-

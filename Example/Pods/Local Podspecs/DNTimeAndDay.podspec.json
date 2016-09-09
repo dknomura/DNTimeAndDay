@@ -1,9 +1,9 @@
 {
   "name": "DNTimeAndDay",
   "version": "0.1.0",
-  "summary": "A short description of DNTimeAndDay.",
-  "description": "TODO: Add long description of the pod here.",
-  "homepage": "https://github.com/<GITHUB_USERNAME>/DNTimeAndDay",
+  "summary": "A model struct to iterate through the time and day at a given interval.",
+  "description": "A DNTimeAndDay object is initialized with a string value or int value for time and day along with 12/24hr time format. Developers can set an interval at which the object can be increased/decreased, default is 30 minutes.",
+  "homepage": "https://github.com/dknomura/DNTimeAndDay",
   "license": {
     "type": "MIT",
     "file": "LICENSE"
@@ -12,7 +12,7 @@
     "dnomnom": "dknomura@gmail.com"
   },
   "source": {
-    "git": "https://github.com/<GITHUB_USERNAME>/DNTimeAndDay.git",
+    "git": "https://github.com/dknomura/DNTimeAndDay.git",
     "tag": "0.1.0"
   },
   "platforms": {
