@@ -28,7 +28,8 @@ currentTimeAndDay.minuteInterval = 30
 do {
     currentTimeAndDay.increaseTimeInterval()  
     currentTimeAndDaytime.stringValue(withFormat:.format12Hour) 
-    // if the time is in between intervals, then the minute will increase to match the interval. ie time = 12:00pm, not 12;15pm
+    // if the time is in between intervals, then the minute will increase to match the interval. 
+    // ie time = 12:00pm, not 12;15pm
 } catch DNTimeAndError.invalidMinuteInterval {
     print("Minute interval is invalid, must be greater than 0 and 60 % (interval % 60) == 0 **") 
 }
