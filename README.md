@@ -21,7 +21,7 @@ from the Example directory.
 
 ## Usage
 ```swift
-var currentTimeAndDay = DNTimeAndDay.currentTimeAndDay()  // day.stringValue: "Mon", time.stringValue: "11:45am"
+var currentTimeAndDay = DNTimeAndDay.currentTimeAndDay()  // stringValues: "Mon", "11:45am"
 // can also init with string and int values
 currentTimeAndDay.minuteInterval = 30  
 
