@@ -5,11 +5,31 @@
 [![License](https://img.shields.io/cocoapods/l/DNTimeAndDay.svg?style=flat)](http://cocoapods.org/pods/DNTimeAndDay)
 [![Platform](https://img.shields.io/cocoapods/p/DNTimeAndDay.svg?style=flat)](http://cocoapods.org/pods/DNTimeAndDay)
 
+A simple model object to store and adjust time and day of the week. Increase/decrease the time in intervals that evenly divide into 60 (60 % interval == 0). Option to output the string value in 12/24-hour formats (4:00pm vs 16:00). Plans to include date (day, week, month, year).   
+
 ## Example
 
-To run the example project, clone the repo, and run `pod install` from the Example directory first.
+To run the example project, clone the repo,
 
-## Requirements
+`git clone `
+
+and run 
+
+`pod install` 
+
+from the Example directory.
+
+## Usage
+```
+// can also init with string and int values
+var currentTimeAndDay = DNTimeAndDay.currentTimeAndDay()  // day: Mon, time: 11:45am
+currentTimeAndDay.minuteInterval = 30    
+currentTimeAndDay.increaseTimeInterval()  
+currentTimeAndDaytime.stringValue(withFormat:.format12Hour) 
+// if the time is in between intervals, then the minute will increase to match the interval. ie time = 12:00pm, not 12;15pm
+currentTimeAndDay.day.increaseDay() 
+currentTimeAndDay.day.stringValue // "Tues"
+```
 
 ## Installation
 
@@ -19,6 +39,11 @@ it, simply add the following line to your Podfile:
 ```ruby
 pod "DNTimeAndDay"
 ```
+
+## Requirements
+- iOS 9.3+
+- Xcode 7.3.1+
+
 
 ## Author
 
