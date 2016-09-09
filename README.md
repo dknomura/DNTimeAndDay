@@ -20,9 +20,9 @@ and run
 from the Example directory.
 
 ## Usage
-```
+```swift
+var currentTimeAndDay = DNTimeAndDay.currentTimeAndDay()  // day.stringValue: "Mon", time.stringValue: "11:45am"
 // can also init with string and int values
-var currentTimeAndDay = DNTimeAndDay.currentTimeAndDay()  // day: Mon, time: 11:45am
 currentTimeAndDay.minuteInterval = 30  
 
 do {
