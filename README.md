@@ -7,6 +7,16 @@
 
 A simple model object to store and adjust time and day of the week. Increase/decrease the time in even intervals***. Output the time string value in 12/24-hour formats (4:00pm vs 16:00). Plans to include date (day, week, month, year).   
 
+## Installation
+
+DNTimeAndDay is available through [CocoaPods](http://cocoapods.org). To install
+it, simply add the following line to your Podfile:
+
+```ruby
+pod "DNTimeAndDay"
+```
+
+
 ## Example
 
 To run the example project, clone the repo,
@@ -35,15 +45,6 @@ do {
 }
 currentTimeAndDay.day.increaseDay() 
 currentTimeAndDay.day.stringValue // "Tues"
-```
-
-## Installation
-
-DNTimeAndDay is available through [CocoaPods](http://cocoapods.org). To install
-it, simply add the following line to your Podfile:
-
-```ruby
-pod "DNTimeAndDay"
 ```
 
 ## Requirements
