@@ -1,12 +1,17 @@
 use_frameworks!
 
-target 'DNTimeAndDay_Example' do
+def standard_pods
   pod 'DNTimeAndDay', :path => '../'
+ end
 
-  target 'DNTimeAndDay_Tests' do
+target 'DNTimeAndDay_Example' do
+	standard_pods
+end
+
+target 'DNTimeAndDay_Tests' do
+	standard_pods
     inherit! :search_paths
 
     pod 'Quick', '~> 0.8'
   pod 'Nimble', '~> 3.0'
-  end
 end
