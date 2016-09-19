@@ -31,14 +31,19 @@ public enum DNDayFormat: String {
     case abbr
 }
 
-public protocol ChangeableTimeUnit {
+public protocol DNChangeableTimeUnit {
     mutating func increase(by interval:Int)
     mutating func decrease(by interval:Int)
-    func stringValue(forFormat format: DNTimeAndDayFormat) -> String
-    associatedtype DNTimeAndDayFormat
 }
 
-public enum DNDay: Int, ChangeableTimeUnit {
+public protocol DNStringableTimeUnit {
+    func stringValue(forFormat format: DNTimeAndDayFormat) -> String
+    init?(stringValue stringValue:String)
+    associatedtype DNTimeAndDayFormat
+    
+}
+
+public enum DNDay: Int, DNChangeableTimeUnit, DNStringableTimeUnit {
     //Int/raw values match the Gregorian Calendar day of the week format
     case Sun = 1, Mon, Tues, Wed, Thurs, Fri, Sat
     public typealias DNTimeAndDayFormat = DNDayFormat
@@ -80,7 +85,7 @@ public enum DNDay: Int, ChangeableTimeUnit {
             dayInt = dayInt % 7 + 7
         }
     }
-    public init?(stringValue:String) {
+    public init?(stringValue stringValue:String) {
         let lowerCase = stringValue.lowercaseString
         let rawValue: Int
         switch lowerCase {
@@ -106,7 +111,7 @@ public enum DNDay: Int, ChangeableTimeUnit {
 }
 
 
-public struct DNTime: ChangeableTimeUnit {
+public struct DNTime: DNChangeableTimeUnit, DNStringableTimeUnit {
     public typealias DNTimeAndDayFormat = DNTimeFormat
     enum DNAmPm: String{
         case am, pm, format24
@@ -130,8 +135,8 @@ public struct DNTime: ChangeableTimeUnit {
             return nil
         }
     }
-    public init?(userInputValue timeString:String) {
-        let lowerCaseStringValue = timeString.lowercaseString
+    public init?(stringValue userInput:String) {
+        let lowerCaseStringValue = userInput.lowercaseString
         let periodRange = lowerCaseStringValue.rangeOfString(".")
         let colonRange = lowerCaseStringValue.rangeOfString(":")
         let pRange = lowerCaseStringValue.rangeOfString("p")
@@ -352,7 +357,7 @@ public extension DNTimeAndDay {
             print("Unable to make day out of string: \(dayString)")
             return nil
         }
-        guard let initTime = DNTime.init(userInputValue: timeString) else {
+        guard let initTime = DNTime.init(stringValue: timeString) else {
             print("Unable to make time out of string: \(timeString)")
             return nil
         }

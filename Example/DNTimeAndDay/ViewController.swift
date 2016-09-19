@@ -100,7 +100,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 displayError(withMessage: "Invalid day input", handler: nil)
             }
         } else if textField === timeTextField {
-            if let time = DNTime.init(userInputValue: textField.text!) {
+            if let time = DNTime.init(stringValue: textField.text!) {
                 timeAndDayDisplay.time = time
             } else {
                 displayError(withMessage: "Invalid time input", handler: nil)
