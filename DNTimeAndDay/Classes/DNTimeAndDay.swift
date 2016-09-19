@@ -25,7 +25,13 @@ public enum DNTimeFormat: String {
     case format24Hour = "24-Hour"
     case format12Hour = "12-Hour"
 }
-public enum DNDay: Int {
+
+public protocol ChangeableTimeUnit {
+    mutating func increase(by interval:Int)
+    mutating func decrease(by interval:Int)
+}
+
+public enum DNDay: Int, ChangeableTimeUnit {
     //Int/raw values match the Gregorian Calendar day of the week format
     case Sun = 1, Mon, Tues, Wed, Thurs, Fri, Sat
     public var stringValue: String {
@@ -43,13 +49,13 @@ public enum DNDay: Int {
     enum DayError: ErrorType {
         case invalidString(String)
     }
-    public mutating func increase(days days:Int) {
+    public mutating func increase(by days:Int) {
         var dayInt = self.rawValue
         dayInt += days % 7
         normalize(&dayInt)
         self = DNDay.init(rawValue: dayInt)!
     }
-    public mutating func decrease(days days:Int) {
+    public mutating func decrease(by days:Int) {
         var dayInt = self.rawValue
         dayInt -= days % 7
         normalize(&dayInt)
@@ -90,7 +96,7 @@ public enum DNDay: Int {
         self.init(rawValue: rawValue)
     }
 }
-public struct DNTime {
+public struct DNTime: ChangeableTimeUnit {
     enum DNAmPm: String{
         case am, pm, format24
     }
@@ -210,57 +216,50 @@ public struct DNTime {
         }
         return hourString + ":" + minString + amPM
     }
-    mutating func increase(byMinuteInterval minuteInterval:Int) throws {
-        try changeTime(byMinuteInterval: minuteInterval, increase: true)
+    mutating public func increase(by minuteInterval:Int) {
+        changeTime(byMinuteInterval: minuteInterval, increase: true)
     }
-    mutating func decrease(byMinuteInterval minuteInterval:Int) throws {
-        try changeTime(byMinuteInterval: minuteInterval, increase: false)
+    mutating public func decrease(by minuteInterval:Int) {
+        changeTime(byMinuteInterval: minuteInterval, increase: false)
     }
-    mutating private func changeTime(byMinuteInterval minuteInterval:Int, increase: Bool) throws {
-        guard minuteInterval > 0 else { throw DNTimeAndDayError.invalidMinuteInterval(minuteInterval) }
+    mutating private func changeTime(byMinuteInterval minuteInterval:Int, increase: Bool) {
+        guard minuteInterval != 0 else { return }
+        guard minuteInterval > 0 else {
+            changeTime(byMinuteInterval: -minuteInterval, increase: !increase)
+            return
+        }
         var timeToChange: DNTime = self
         let hourChange = Int(minuteInterval / 60)
-        if hourChange > 0 {
+        if hourChange != 0 {
             timeToChange.hour += increase ? hourChange : -hourChange
         }
-        let remainingMinuteInterval = minuteInterval % 60
-        if remainingMinuteInterval > 0 {
-            guard 60 % remainingMinuteInterval == 0 else { throw DNTimeAndDayError.invalidMinuteInterval(minuteInterval) }
+        var remainingMinuteInterval = minuteInterval % 60
+        if remainingMinuteInterval != 0 {
+            if 60 % remainingMinuteInterval != 0 {
+                print("Invalid minute interval: \(minuteInterval), 60 % (interval % 60) != 0. Will use default 30 min interval")
+                remainingMinuteInterval = 30
+            }
             let numberOfIntervals: Int = (60 / remainingMinuteInterval) - 1
-            // the remainingMinuteInterval * interval is the greatest interval that is less than 60 (ie if the minute interval is 10 then the greatest interval is 50, if minute interval is 15 then the greatest minute interval is 45). If the timeToIncrease minutes is greater than the greatest interval then min = 0 and hour++. Otherwise increase/decrease the minutes to the correct interval
-            
-            if increase ? timeToChange.min >= remainingMinuteInterval * numberOfIntervals : timeToChange.min == 0 {
+            // the remainingMinuteInterval * numberOfIntervals is the greatest interval that is less than 60 (ie if the minute interval is 10 then the greatest interval is 50, if minute interval is 15 then the greatest minute interval is 45). If the timeToIncrease minutes is greater than the greatest interval then min = 0 and hour++. Otherwise increase/decrease the minutes to the correct interval
+            let shouldChangeHour = increase ? timeToChange.min >= remainingMinuteInterval * numberOfIntervals : timeToChange.min == 0
+            if shouldChangeHour {
                 timeToChange.min = increase ? 0 : remainingMinuteInterval * numberOfIntervals
                 timeToChange.hour += increase ? 1 : -1
             } else {
-                if increase {
-                    increaseTime(&timeToChange, byInterval: remainingMinuteInterval, numberOfIntervals: numberOfIntervals)
-                } else {
-                    decreaseTime(&timeToChange, byInterval: remainingMinuteInterval, numberOfIntervals: numberOfIntervals)
+                for i in 1...numberOfIntervals + 1 {
+                    let changeToMin = increase ? remainingMinuteInterval * i : remainingMinuteInterval * (numberOfIntervals - i + 1)
+                    let shouldChangeToMin = increase ? timeToChange.min < changeToMin : timeToChange.min > changeToMin
+                    if shouldChangeToMin {
+                        timeToChange.min = changeToMin
+                        break
+                    }
                 }
             }
-        } else if remainingMinuteInterval == 0 {
+        } else {
             timeToChange.min = 0
         }
         self.hour = timeToChange.hour
         self.min = timeToChange.min
-
-    }
-    private func increaseTime(inout time:DNTime, byInterval minuteInterval: Int, numberOfIntervals: Int) {
-        for i in 1...numberOfIntervals {
-            if time.min < minuteInterval * i {
-                time.min = minuteInterval * i
-                break
-            }
-        }
-    }
-    private func decreaseTime(inout time:DNTime, byInterval minuteInterval: Int, numberOfIntervals: Int) {
-        for i in numberOfIntervals.stride(through: 0, by: -1) {
-            if time.min > minuteInterval * i {
-                time.min = minuteInterval * i
-                break
-            }
-        }
     }
     static private func adjustHourInput(inout hour:Int?, amOrPM:DNAmPm?) {
         guard hour != nil else { return }
@@ -296,30 +295,36 @@ public struct DNTimeAndDay {
     public var dayInterval = 1
     
     public mutating func increaseDay() {
-        day.increase(days: dayInterval)
+        day.increase(by: dayInterval)
     }
     public mutating func decreaseDay() {
-        day.decrease(days: dayInterval)
+        day.decrease(by: dayInterval)
     }
-    public mutating func increaseTime() throws {
-        try changeTime(increase: true)
+    public mutating func increaseTime() {
+        changeTime(increase: true)
     }
-    public mutating func decreaseTime() throws {
-        try changeTime(increase: false)
+    public mutating func decreaseTime() {
+        changeTime(increase: false)
     }
-    private mutating func changeTime(increase increase:Bool) throws {
-        increase ? try time.increase(byMinuteInterval: minuteInterval) : try time.decrease(byMinuteInterval: minuteInterval)
+    private mutating func changeTime(var increase increase:Bool) {
+        guard minuteInterval != 0 else { return }
+        var absoluteMinInterval = minuteInterval
+        if absoluteMinInterval < 0 {
+            absoluteMinInterval *= -1
+            increase = !increase
+        }
+        increase ? time.increase(by: absoluteMinInterval) : time.decrease(by: absoluteMinInterval)
         if time.hour > 23 {
             let dayCounter = Int(time.hour / 24)
             time.hour = time.hour % 24
-            day.increase(days: dayCounter)
+            day.increase(by: dayCounter)
         } else if time.hour < 0 {
             let dayCounter = Int(abs(time.hour / 24)) + 1
             time.hour = time.hour % 24 + 24
             if time.hour == 24 {
                 time.hour = 0
             }
-            day.decrease(days: dayCounter)
+            day.decrease(by: dayCounter)
         }
     }
 }

@@ -61,15 +61,9 @@ class ViewController: UIViewController, UITextFieldDelegate {
         if let outletTag = OutletTags(rawValue: button.tag) {
             switch outletTag {
             case .day:
-                increase ? timeAndDayDisplay.day.increase(days: 1) : timeAndDayDisplay.day.decrease(days: 1)
+                increase ? timeAndDayDisplay.increaseDay() : timeAndDayDisplay.decreaseDay()
             case .time:
-                do {
-                    increase ? try timeAndDayDisplay.increaseTime() : try timeAndDayDisplay.decreaseTime()
-                } catch {
-                    displayError(withMessage: "Invalid minute interval, will reset to 30", handler: { (nil) in
-                        self.timeAndDayDisplay.minuteInterval = 30
-                    })
-                }
+                increase ? timeAndDayDisplay.increaseTime() : timeAndDayDisplay.decreaseTime()
             case .interval:
                 timeAndDayDisplay.minuteInterval += increase ? 5 : -5
             }

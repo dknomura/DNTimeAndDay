@@ -23,58 +23,58 @@ class DNTimeAndDaySpec: QuickSpec {
                 context("24-Hour time format", {
                     it("is at night", closure: {
                         expect(timeAndDay.time.stringValue(forFormat: .format24Hour)).to(equal("21:00"))
-                        try! timeAndDay.increaseTime()
+                        timeAndDay.increaseTime()
                         expect(timeAndDay.time.stringValue(forFormat: .format24Hour)).to(equal("21:30"))
                     })
                     it("is in the morning", closure: { 
                         timeAndDay = DNTimeAndDay.init(dayInt: 6, hourInt: 8, minInt: 30)
                         expect(timeAndDay.time.stringValue(forFormat: .format24Hour)).to(equal("08:30"))
-                        try! timeAndDay.increaseTime()
+                        timeAndDay.increaseTime()
                         expect(timeAndDay.time.stringValue(forFormat: .format24Hour)).to(equal("09:00"))
                     })
                 })
                 context("12-Hour time format", {
                     it("is at night", closure: {
                         expect(timeAndDay.time.stringValue(forFormat: .format12Hour)).to(equal("9:00pm"))
-                        try! timeAndDay.increaseTime()
+                        timeAndDay.increaseTime()
                         expect(timeAndDay.time.stringValue(forFormat: .format12Hour)).to(equal("9:30pm"))
                     })
                     it("is in the morning", closure: {
                         timeAndDay = DNTimeAndDay.init(dayInt: 6, hourInt: 8, minInt: 30)
                         expect(timeAndDay.time.stringValue(forFormat: .format12Hour)).to(equal("8:30am"))
-                        try! timeAndDay.increaseTime()
+                        timeAndDay.increaseTime()
                         expect(timeAndDay.time.stringValue(forFormat: .format12Hour)).to(equal("9:00am"))
                     })
                 })
             })
         }
         describe("Change time and day") {
-            describe("Time", closure: {
+            fdescribe("Time", closure: {
                 beforeEach({
                     //day = 2, hour = 18, min = 0
                     timeAndDay = DNTimeAndDay.init(dayString: "mon", timeString: "6p")
                 })
                 it("increases time default value, 30", closure: {
-                    try! timeAndDay.increaseTime()
+                    timeAndDay.increaseTime()
                     expect(timeAndDay.time.hour).to(equal(18))
                     expect(timeAndDay.time.min).to(equal(30))
-                    try! timeAndDay.increaseTime()
+                    timeAndDay.increaseTime()
                     expect(timeAndDay.time.hour).to(equal(19))
                     expect(timeAndDay.time.min).to(equal(0))
                 })
                 it("decreases time default value, 30", closure: {
-                    try! timeAndDay.decreaseTime()
+                    timeAndDay.decreaseTime()
                     expect(timeAndDay.time.hour).to(equal(17))
                     expect(timeAndDay.time.min).to(equal(30))
-                    try! timeAndDay.decreaseTime()
+                    timeAndDay.decreaseTime()
                     expect(timeAndDay.time.hour).to(equal(17))
                     expect(timeAndDay.time.min).to(equal(0))
-                    try! timeAndDay.decreaseTime()
+                    timeAndDay.decreaseTime()
                     expect(timeAndDay.time.hour).to(equal(16))
                     expect(timeAndDay.time.min).to(equal(30))
                 })
                 describe("Changes day appropriately after increase/decrease", closure: {
-                    describe("1515 minutes", {
+                    describe("positive 1515 minutes", {
                         beforeEach({
                             //day = 2, hour = 18, min = 0
                             timeAndDay = DNTimeAndDay.init(dayString: "mon", timeString: "6.5p")
@@ -83,20 +83,36 @@ class DNTimeAndDaySpec: QuickSpec {
                         })
 
                         it("increases", closure: {
-                            try! timeAndDay.increaseTime()
+                            timeAndDay.increaseTime()
                             expect(timeAndDay.day.rawValue).to(equal(3))
                             expect(timeAndDay.time.hour).to(equal(19))
                             expect(timeAndDay.time.min).to(equal(45))
+                            timeAndDay.increaseTime()
+                            expect(timeAndDay.day.rawValue).to(equal(4))
+                            expect(timeAndDay.time.hour).to(equal(21))
+                            expect(timeAndDay.time.min).to(equal(0))
+                            timeAndDay.increaseTime()
+                            expect(timeAndDay.day.rawValue).to(equal(5))
+                            expect(timeAndDay.time.hour).to(equal(22))
+                            expect(timeAndDay.time.min).to(equal(15))
                         })
                         it("decreases", closure: {
-                            try! timeAndDay.decreaseTime()
+                            timeAndDay.decreaseTime()
                             expect(timeAndDay.day.rawValue).to(equal(1))
                             expect(timeAndDay.time.hour).to(equal(17))
                             expect(timeAndDay.time.min).to(equal(15))
+                            timeAndDay.decreaseTime()
+                            expect(timeAndDay.day.rawValue).to(equal(7))
+                            expect(timeAndDay.time.hour).to(equal(16))
+                            expect(timeAndDay.time.min).to(equal(0))
+                            timeAndDay.decreaseTime()
+                            expect(timeAndDay.day.rawValue).to(equal(6))
+                            expect(timeAndDay.time.hour).to(equal(14))
+                            expect(timeAndDay.time.min).to(equal(45))
                         })
 
                     })
-                    describe("2120 minutes", {
+                    describe("positive 2120 minutes", {
                         beforeEach({
                             //day = 2, hour = 18, min = 0
                             timeAndDay = DNTimeAndDay.init(dayString: "mon", timeString: "6.5p")
@@ -105,24 +121,64 @@ class DNTimeAndDaySpec: QuickSpec {
                         })
 
                         it("increases 2120 minutes", closure: {
-                            try! timeAndDay.increaseTime()
+                            timeAndDay.increaseTime()
                             expect(timeAndDay.day.rawValue).to(equal(4))
                             expect(timeAndDay.time.hour).to(equal(5))
                             expect(timeAndDay.time.min).to(equal(40))
                         })
                         it("decreases 2120 minutes", closure: {
-                            try! timeAndDay.decreaseTime()
+                            timeAndDay.decreaseTime()
                             expect(timeAndDay.day.rawValue).to(equal(1))
                             expect(timeAndDay.time.hour).to(equal(7))
                             expect(timeAndDay.time.min).to(equal(20))
                         })
 
                     })
-                })
-                it("throws when 60 % timeInterval != 0", closure: { 
-                    timeAndDay.minuteInterval = 14
-                    expect{try timeAndDay.increaseTime()}.to(throwError())
-                    expect{try timeAndDay.decreaseTime()}.to(throwError())
+                    describe("negative 1515 minutes", {
+                        beforeEach({
+                            //day = 2, hour = 18, min = 0
+                            timeAndDay = DNTimeAndDay.init(dayString: "mon", timeString: "6.5p")
+                            // 1515 minutes is 1 day, 1 hour, and 15 minutes
+                            timeAndDay.minuteInterval = -1515
+                        })
+                        
+                        it("increases", closure: {
+                            timeAndDay.increaseTime()
+                            expect(timeAndDay.day.rawValue).to(equal(1))
+                            expect(timeAndDay.time.hour).to(equal(17))
+                            expect(timeAndDay.time.min).to(equal(15))
+                        })
+                        it("decreases", closure: {
+                            timeAndDay.decreaseTime()
+                            expect(timeAndDay.day.rawValue).to(equal(3))
+                            expect(timeAndDay.time.hour).to(equal(19))
+                            expect(timeAndDay.time.min).to(equal(45))
+                        })
+                        
+                    })
+                    describe("negative 2120 minutes", {
+                        beforeEach({
+                            //day = 2, hour = 18, min = 0
+                            timeAndDay = DNTimeAndDay.init(dayString: "mon", timeString: "6.5p")
+                            // 2120 minutes is 1 day, 11 hour, and 20 minutes
+                            timeAndDay.minuteInterval = -2120
+                        })
+                        
+                        it("increases 2120 minutes", closure: {
+                            timeAndDay.increaseTime()
+                            expect(timeAndDay.day.rawValue).to(equal(1))
+                            expect(timeAndDay.time.hour).to(equal(7))
+                            expect(timeAndDay.time.min).to(equal(20))
+                        })
+                        it("decreases 2120 minutes", closure: {
+                            timeAndDay.decreaseTime()
+                            expect(timeAndDay.day.rawValue).to(equal(4))
+                            expect(timeAndDay.time.hour).to(equal(5))
+                            expect(timeAndDay.time.min).to(equal(40))
+
+                        })
+                        
+                    })
                 })
             })
             describe("Day", closure: {
@@ -132,11 +188,11 @@ class DNTimeAndDaySpec: QuickSpec {
                         timeAndDay = DNTimeAndDay.init(dayString: "mon", timeString: "6p")
                     })
                     it("increases 2 days", closure: {
-                        timeAndDay.day.increase(days: 2)
+                        timeAndDay.day.increase(by: 2)
                         expect(timeAndDay.day.rawValue).to(equal(4))
                     })
                     it("decreases 2 days", closure: {
-                        timeAndDay.day.decrease(days: 2)
+                        timeAndDay.day.decrease(by: 2)
                         expect(timeAndDay.day.rawValue).to(equal(7))
                     })
                 })
@@ -156,7 +212,7 @@ class DNTimeAndDaySpec: QuickSpec {
                 })
             })
         }
-        describe("Time and day initializers") {
+        xdescribe("Time and day initializers") {
             describe("for date", closure: {
                 var currentTimeAndDay: DNTimeAndDay!
                 var intValues: (day:Int, hour:Int, min:Int)!
