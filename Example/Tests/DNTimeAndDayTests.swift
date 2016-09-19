@@ -192,17 +192,90 @@ class DNTimeAndDaySpec: QuickSpec {
             })
             describe("String initializer", closure: {
                 context("Time with no punctuation", {
-                    self.initialize(withDayString: "m", timeString: "6p", expectation: (day: 2, hour: 18, min: 0), amPm: true)
-                    self.initialize(withDayString: "tues", timeString: "6", expectation: (day: 3, hour: 6, min:0), amPm: false)
+//                    self.initialize(withDayString: "m", timeString: "6p", expectation: (day: 2, hour: 18, min: 0), amPm: true)
+                    let timeAndDay = DNTimeAndDay.init(dayString: "m", timeString: "6p")
+                    context("am/pm preset") {
+                        it("s day", closure: {
+                            expect(timeAndDay!.day.rawValue).to(equal(2))
+                        })
+                        it("s hour", closure: {
+                            expect(timeAndDay!.time.hour).to(equal(18))
+                        })
+                        it("s minute", closure: {
+                            expect(timeAndDay!.time.min).to(equal(0))
+                        })
+                    }
+//                    self.initialize(withDayString: , timeString: "", expectation: (day: 3, hour: 6, min:0), amPm: false)
+                    context("am/pm not present") {
+                        let timeAndDay = DNTimeAndDay.init(dayString: "tues", timeString: "6")
+                        it("s day", closure: {
+                            expect(timeAndDay!.day.rawValue).to(equal(3))
+                        })
+                        it("s hour", closure: {
+                            expect(timeAndDay!.time.hour).to(equal(6))
+                        })
+                        it("s minute", closure: {
+                            expect(timeAndDay!.time.min).to(equal(0))
+                        })
+                    }
+
                 })
                 context("Time with period", {
-                    self.initialize(withDayString: "we", timeString: "6.4a", expectation: (day: 4, hour: 6, min: Int(40 * 0.6)), amPm: true)
-                    self.initialize(withDayString: "th", timeString: "15.29", expectation: (day: 5, hour: 15, min: Int(29 * 0.6)), amPm: false)
+//                    self.initialize(withDayString: "we", timeString: "6.4a", expectation: (day: 4, hour: 6, min: Int(40 * 0.6)), amPm: true)
+                    context("am/pm present") {
+                        let timeAndDay = DNTimeAndDay.init(dayString: "we", timeString: "6.4a")
+                        it("s day", closure: {
+                            expect(timeAndDay!.day.rawValue).to(equal(4))
+                        })
+                        it("s hour", closure: {
+                            expect(timeAndDay!.time.hour).to(equal(6))
+                        })
+                        it("s minute", closure: {
+                            expect(timeAndDay!.time.min).to(equal(Int(40 * 0.6)))
+                        })
+                    }
+//                    self.initialize(withDayString: "th", timeString: "15.29", expectation: (day: 5, hour: 15, min: Int(29 * 0.6)), amPm: false)
+                    context("am/pm not present") {
+                        let timeAndDay = DNTimeAndDay.init(dayString: "th", timeString: "15.29")
+                        it("s day", closure: {
+                            expect(timeAndDay!.day.rawValue).to(equal(5))
+                        })
+                        it("s hour", closure: {
+                            expect(timeAndDay!.time.hour).to(equal(15))
+                        })
+                        it("s minute", closure: {
+                            expect(timeAndDay!.time.min).to(equal(Int(29 * 0.6)))
+                        })
+                    }
                     
                 })
                 context("Time with colon", {
-                    self.initialize(withDayString: "su", timeString: "12:49pm", expectation: (day: 1, hour: 12, min: 49), amPm: true)
-                    self.initialize(withDayString: "sa", timeString: "2:02", expectation: (day: 7, hour: 2, min: 2), amPm: false)
+//                    self.initialize(withDayString: "su", timeString: "12:49pm", expectation: (day: 1, hour: 12, min: 49), amPm: true)
+                    context("am/pm present") {
+                        let timeAndDay = DNTimeAndDay.init(dayString: "su", timeString: "12:49pm")
+                        it("s day", closure: {
+                            expect(timeAndDay!.day.rawValue).to(equal(1))
+                        })
+                        it("s hour", closure: {
+                            expect(timeAndDay!.time.hour).to(equal(12))
+                        })
+                        it("s minute", closure: {
+                            expect(timeAndDay!.time.min).to(equal(49))
+                        })
+                    }
+//                    self.initialize(withDayString: "sa", timeString: "2:02", expectation: (day: 7, hour: 2, min: 2), amPm: false)
+                    context("am/pm not present") {
+                        let timeAndDay = DNTimeAndDay.init(dayString: "sa", timeString: "2:02")
+                        it("s day", closure: {
+                            expect(timeAndDay!.day.rawValue).to(equal(7))
+                        })
+                        it("s hour", closure: {
+                            expect(timeAndDay!.time.hour).to(equal(2))
+                        })
+                        it("s minute", closure: {
+                            expect(timeAndDay!.time.min).to(equal(2))
+                        })
+                    }
                     
                 })
                 context("Time with invalid punctuation/characters", {
