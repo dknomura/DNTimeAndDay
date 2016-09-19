@@ -13,7 +13,9 @@ class ViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var dayTextField: UITextField!    
     @IBOutlet weak var timeTextField: UITextField!
     @IBOutlet weak var intervalTextField: UITextField!
-    @IBOutlet weak var formatLabel: UILabel!
+    @IBOutlet weak var timeFormatLabel: UILabel!
+    @IBOutlet weak var dayFormatLabel: UILabel!
+    
     
     enum OutletTags: Int {
         case day = 0, time, interval
@@ -41,14 +43,24 @@ class ViewController: UIViewController, UITextFieldDelegate {
             timeFormat = .format24Hour
         }
         timeTextField.text = timeAndDayDisplay.time.stringValue(forFormat: timeFormat)
-        formatLabel.text = timeFormat.rawValue
+        timeFormatLabel.text = timeFormat.rawValue
     }
+    
+    @IBAction func switchDayFormat(sender: UISwitch) {
+        if sender.on {
+            dayFormat = .full
+        } else {
+            dayFormat = .abbr
+        }
+        dayTextField.text = timeAndDayDisplay.day.stringValue(forFormat: dayFormat)
+        dayFormatLabel.text = dayFormat == .full ? "Full Day" : "Abbr Day"
+    }
+    
     @IBAction func setCurrentTimeAndDay(sender: UIButton) {
         timeAndDayDisplay = DNTimeAndDay.currentTimeAndDay()
         timeAndDayDisplay.minuteInterval = Int(intervalTextField.text!)!
         setTextFields()
     }
-    
     
     @IBAction func increaseTaggedTextField(sender: UIButton) {
         changeTextField(forButton: sender, increase: true)
@@ -101,6 +113,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             }
         }
     }
+    
     private func displayError(withMessage message: String, handler: ((UIAlertAction) -> Void)?) {
         let alertController = UIAlertController.init(title: "Error", message: message, preferredStyle: .Alert)
         let confirmation = UIAlertAction.init(title: "Ok", style: .Default, handler: handler)
