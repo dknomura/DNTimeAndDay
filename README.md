@@ -31,20 +31,19 @@ from the Example directory.
 
 ## Usage
 ```swift
-var currentTimeAndDay = DNTimeAndDay.currentTimeAndDay()  // stringValues: "Mon", "11:45am"
+var currentTimeAndDay = DNTimeAndDay.currentTimeAndDay()  
 // can also init with string and int values
-currentTimeAndDay.minuteInterval = 30  
+// day string parameter is case insensitive and can recognize common day abbreviations, time string can have a period or colon and the option of am/pm (ie "11:30p", "11.5p", "11:00pm", "23.5", "23:30" are all the same) 
+// default minuteInterval = 30, dayInterval = 1
+var otherTimeAndDay = DNTimeAndDay.init(dayString: "m", timeString:"9p", minuteInterval: 90, dayInterval = 2)
 
-do {
-    currentTimeAndDay.increaseTimeInterval()  
-    currentTimeAndDaytime.stringValue(withFormat:.format12Hour) 
-    // if the time is in between intervals, then the minute will increase to match the interval. 
-    // ie time = 12:00pm, not 12;15pm
-} catch DNTimeAndError.invalidMinuteInterval {
-    print("Minute interval is invalid, must be greater than 0 and 60 % (interval % 60) == 0 ***") 
-}
-currentTimeAndDay.day.increaseDay() 
-currentTimeAndDay.day.stringValue // "Tues"
+otherTimeAndDay.increaseTime()  
+otherTimeAndDay.time.stringValue(withFormat:.format12Hour)  // "10:30pm"
+// if the time is in between intervals, then the minute will increase to match the interval. 
+// ie time = 12:00pm, not 12;15pm
+
+currentTimeAndDay.increaseDay() 
+currentTimeAndDay.day.stringValue // "Wed"
 ```
 
 ## Requirements
