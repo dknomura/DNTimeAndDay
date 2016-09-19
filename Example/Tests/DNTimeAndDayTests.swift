@@ -14,9 +14,11 @@ class DNTimeAndDaySpec: QuickSpec {
             })
             describe("Day", { 
                 it("checks and increases a day", closure: { 
-                    expect(timeAndDay.day.stringValue).to(equal("Wed"))
+                    expect(timeAndDay.day.stringValue(forFormat: .abbr)).to(equal("Wed"))
+                    expect(timeAndDay.day.stringValue(forFormat: .full)).to(equal("Wednesday"))
                     timeAndDay.increaseDay()
-                    expect(timeAndDay.day.stringValue).to(equal("Thurs"))
+                    expect(timeAndDay.day.stringValue(forFormat: .abbr)).to(equal("Thurs"))
+                    expect(timeAndDay.day.stringValue(forFormat: .full)).to(equal("Thursday"))
                 })
             })
             describe("Time", {

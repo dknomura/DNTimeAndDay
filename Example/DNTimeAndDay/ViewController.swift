@@ -21,6 +21,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     
     var timeAndDayDisplay: DNTimeAndDay = DNTimeAndDay.init(dayString: "m", timeString: "12")!
     var timeFormat: DNTimeFormat = .format12Hour
+    var dayFormat: DNDayFormat = .full
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -74,7 +75,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     }
     
     private func setTextFields() {
-        dayTextField.text = timeAndDayDisplay.day.stringValue
+        dayTextField.text = timeAndDayDisplay.day.stringValue(forFormat: dayFormat)
         timeTextField.text = timeAndDayDisplay.time.stringValue(forFormat:timeFormat)
         intervalTextField.text = String(timeAndDayDisplay.minuteInterval)
     }
