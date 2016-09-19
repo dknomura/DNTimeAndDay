@@ -38,12 +38,12 @@ var currentTimeAndDay = DNTimeAndDay.currentTimeAndDay()
 var otherTimeAndDay = DNTimeAndDay.init(dayString: "m", timeString:"9p", minuteInterval: 90, dayInterval = 2)
 
 otherTimeAndDay.increaseTime()  
-otherTimeAndDay.time.stringValue(withFormat:.format12Hour)  // "10:30pm"
+otherTimeAndDay.time.stringValue(forFormat:.format12Hour)  // "10:30pm"
 // if the time is in between intervals, then the minute will increase to match the interval. 
 // ie time = 12:00pm, not 12;15pm
 
 currentTimeAndDay.increaseDay() 
-currentTimeAndDay.day.stringValue // "Wed"
+currentTimeAndDay.day.stringValue(forFormat:.abbr) // "Wed"
 ```
 
 ## Requirements
