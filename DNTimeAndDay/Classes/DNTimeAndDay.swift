@@ -38,9 +38,8 @@ public protocol DNChangeableTimeUnit {
 
 public protocol DNStringableTimeUnit {
     func stringValue(forFormat format: DNTimeAndDayFormat) -> String
-    init?(stringValue stringValue:String)
+    init?(stringValue: String)
     associatedtype DNTimeAndDayFormat
-    
 }
 
 public enum DNDay: Int, DNChangeableTimeUnit, DNStringableTimeUnit {
@@ -85,7 +84,7 @@ public enum DNDay: Int, DNChangeableTimeUnit, DNStringableTimeUnit {
             dayInt = dayInt % 7 + 7
         }
     }
-    public init?(stringValue stringValue:String) {
+    public init?(stringValue: String) {
         let lowerCase = stringValue.lowercaseString
         let rawValue: Int
         switch lowerCase {
