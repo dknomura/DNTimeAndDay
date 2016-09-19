@@ -35,7 +35,7 @@ public protocol ChangeableTimeUnit {
     mutating func increase(by interval:Int)
     mutating func decrease(by interval:Int)
     func stringValue(forFormat format: DNTimeAndDayFormat) -> String
-    typealias DNTimeAndDayFormat
+    associatedtype DNTimeAndDayFormat
 }
 
 public enum DNDay: Int, ChangeableTimeUnit {
@@ -317,9 +317,10 @@ public struct DNTimeAndDay {
     public mutating func decreaseTime() {
         changeTime(increase: false)
     }
-    private mutating func changeTime(var increase increase:Bool) {
+    private mutating func changeTime(increase increaseDecrease:Bool) {
         guard minuteInterval != 0 else { return }
         var absoluteMinInterval = minuteInterval
+        var increase = increaseDecrease
         if absoluteMinInterval < 0 {
             absoluteMinInterval *= -1
             increase = !increase

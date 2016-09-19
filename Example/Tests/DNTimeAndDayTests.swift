@@ -214,7 +214,7 @@ class DNTimeAndDaySpec: QuickSpec {
                 })
             })
         }
-        xdescribe("Time and day initializers") {
+        describe("Time and day initializers") {
             describe("for date", closure: {
                 var currentTimeAndDay: DNTimeAndDay!
                 var intValues: (day:Int, hour:Int, min:Int)!
@@ -371,7 +371,6 @@ class DNTimeAndDaySpec: QuickSpec {
                 })
             })
         }
-        
     }
     
     private func initialize(withDayString dayString:String, timeString:String, expectation:(day:Int, hour:Int, min:Int), amPm:Bool) {
