@@ -31,60 +31,98 @@ public enum DNDayFormat: String {
     case abbr
 }
 
-public protocol DNChangeableTimeUnit {
-    mutating func increase(by interval:Int)
-    mutating func decrease(by interval:Int)
+public protocol DNTimeUnit: class {
+    var interval: Interval { get set }
+    func increase(by interval:Interval)
+    func decrease(by interval:Interval)
+    func increase()
+    func decrease()
+    func stringValue(forFormat format: TimeAndDayFormat) -> String
+    init?(stringValue: StringValue)
+    associatedtype TimeAndDayFormat
+    associatedtype Interval
+    associatedtype StringValue
 }
 
-public protocol DNStringableTimeUnit {
-    func stringValue(forFormat format: DNTimeAndDayFormat) -> String
-    init?(stringValue: String)
-    associatedtype DNTimeAndDayFormat
-}
-
-struct AnyStringableTimeUnit<Format>: DNStringableTimeUnit {
+public class AnyTimeUnit<Format, Interval, StringValue>: DNTimeUnit {
     private let _stringValue: (Format) -> String
-    init<Base: DNStringableTimeUnit where Format == Base.DNTimeAndDayFormat>(_ base: Base) {
+    private let _increaseBy:(by: Interval) -> ()
+    private let _decreaseBy:(by: Interval) -> ()
+    private let _increase: () -> Void
+    private let _decrease: () -> Void
+    public var interval: Interval
+    public init<Base: DNTimeUnit where Format == Base.TimeAndDayFormat, Interval == Base.Interval, StringValue == Base.StringValue>(_ base: Base) {
         _stringValue = base.stringValue
+        _increaseBy = base.increase(by:)
+        _decreaseBy = base.decrease(by:)
+        _decrease = base.decrease
+        _increase = base.increase
+        interval = base.interval
     }
-    func stringValue<S: DNStringableTimeUnit where S.DNTimeAndDayFormat == Format>(forFormat format: Format) -> String {
+    public func stringValue<S: DNTimeUnit where S.TimeAndDayFormat == Format>(forFormat format: Format) -> String {
         return _stringValue(format)
     }
-    init?<S: DNStringableTimeUnit where S.DNTimeAndDayFormat == Format>(stringValue:String) {
+    public func decrease(by interval: Interval) {
+        _decreaseBy(by: interval)
+    }
+    public func increase(by interval: Interval) {
+        _increaseBy(by: interval)
+    }
+    public func decrease() {
+        _decrease()
+    }
+    public func increase() {
+        _increase()
+    }
+    public required init?(stringValue:String) {
         fatalError("Must use base init for type erasure AnyStringableTimeUnit")
     }
 }
 
 
-public enum DNDay: Int, DNChangeableTimeUnit, DNStringableTimeUnit {
+public class DNDay: DNTimeUnit {
     //Int/raw values match the Gregorian Calendar day of the week format
-    case Sun = 1, Mon, Tues, Wed, Thurs, Fri, Sat
-    public func stringValue(forFormat format: DNDayFormat) -> String {
-        switch self {
-        case .Sun: return format == .full ? "Sunday" : "Sun"
-        case .Mon: return format == .full ? "Monday" : "Mon"
-        case .Tues: return format == .full ? "Tuesday" : "Tues"
-        case .Wed: return format == .full ? "Wednesday" : "Wed"
-        case .Thurs: return format == .full ? "Thursday" : "Thurs"
-        case .Fri: return format == .full ? "Friday" : "Fri"
-        case .Sat: return format == .full ? "Saturday" : "Sat"
+    public var interval = 1
+    public var rawValue: Int {
+        didSet {
+            var returnValue = rawValue
+            if returnValue > 7 {
+                returnValue = returnValue % 7
+                if returnValue == 0 {
+                    returnValue = 7
+                }
+            } else if returnValue < 1 {
+                returnValue = returnValue % 7 + 7
+            }
+            rawValue = returnValue
         }
     }
-    static let allValues: [DNDay] = [Sun, Mon, Tues, Wed, Thurs, Fri, Sat]
+    public func stringValue(forFormat format: DNDayFormat) -> String {
+        switch rawValue {
+        case 1: return format == .full ? "Sunday" : "Sun"
+        case 2: return format == .full ? "Monday" : "Mon"
+        case 3: return format == .full ? "Tuesday" : "Tues"
+        case 4: return format == .full ? "Wednesday" : "Wed"
+        case 5: return format == .full ? "Thursday" : "Thurs"
+        case 6: return format == .full ? "Friday" : "Fri"
+        case 7: return format == .full ? "Saturday" : "Sat"
+        default: return format == .full ? "Monday" : "Mon"
+        }
+    }
     enum DayError: ErrorType {
         case invalidString(String)
     }
-    public mutating func increase(by days:Int) {
-        var dayInt = self.rawValue
-        dayInt += days % 7
-        normalize(&dayInt)
-        self = DNDay.init(rawValue: dayInt)!
+    public func increase(by days:Int) {
+        rawValue += days % 7
     }
-    public mutating func decrease(by days:Int) {
-        var dayInt = self.rawValue
-        dayInt -= days % 7
-        normalize(&dayInt)
-        self = DNDay.init(rawValue: dayInt)!
+    public func decrease(by days:Int) {
+        rawValue -= days % 7
+    }
+    public func increase() {
+        increase(by: interval)
+    }
+    public func decrease() {
+        decrease(by: interval)
     }
     
     private func normalize(inout dayInt: Int) {
@@ -97,7 +135,12 @@ public enum DNDay: Int, DNChangeableTimeUnit, DNStringableTimeUnit {
             dayInt = dayInt % 7 + 7
         }
     }
-    public init?(stringValue: String) {
+    
+    public init?(rawValue:Int) {
+        self.rawValue = rawValue
+    }
+
+    public convenience required init?(stringValue: String) {
         let lowerCase = stringValue.lowercaseString
         let rawValue: Int
         switch lowerCase {
@@ -123,10 +166,11 @@ public enum DNDay: Int, DNChangeableTimeUnit, DNStringableTimeUnit {
 }
 
 
-public struct DNTime: DNChangeableTimeUnit, DNStringableTimeUnit {
+public class DNTime: DNTimeUnit {
     enum DNAmPm: String{
         case am, pm, format24
     }
+    public var interval: Int = 30
     public var hour: Int
     public var min: Int {
         didSet{
@@ -136,8 +180,7 @@ public struct DNTime: DNChangeableTimeUnit, DNStringableTimeUnit {
             }
         }
     }
-    
-    init?(hour: Int, min:Int) {
+    public init?(hour: Int, min:Int) {
         if (hour >= 0 && hour < 24) && (min >= 0 && min < 60) {
             self.hour = hour
             self.min = min
@@ -146,7 +189,7 @@ public struct DNTime: DNChangeableTimeUnit, DNStringableTimeUnit {
             return nil
         }
     }
-    public init?(stringValue userInput:String) {
+    public required convenience init?(stringValue userInput:String) {
         let lowerCaseStringValue = userInput.lowercaseString
         let periodRange = lowerCaseStringValue.rangeOfString(".")
         let colonRange = lowerCaseStringValue.rangeOfString(":")
@@ -243,13 +286,20 @@ public struct DNTime: DNChangeableTimeUnit, DNStringableTimeUnit {
         }
         return hourString + ":" + minString + amPM
     }
-    mutating public func increase(by minuteInterval:Int) {
+    
+    public func increase() {
+        changeTime(byMinuteInterval: interval, increase: true)
+    }
+    public func decrease() {
+        changeTime(byMinuteInterval: interval, increase: false)
+    }
+    public func increase(by minuteInterval:Int) {
         changeTime(byMinuteInterval: minuteInterval, increase: true)
     }
-    mutating public func decrease(by minuteInterval:Int) {
+    public func decrease(by minuteInterval:Int) {
         changeTime(byMinuteInterval: minuteInterval, increase: false)
     }
-    mutating private func changeTime(byMinuteInterval minuteInterval:Int, increase: Bool) {
+    private func changeTime(byMinuteInterval minuteInterval:Int, increase: Bool) {
         guard minuteInterval != 0 else { return }
         guard minuteInterval > 0 else {
             changeTime(byMinuteInterval: -minuteInterval, increase: !increase)
@@ -315,25 +365,44 @@ public struct DNTime: DNChangeableTimeUnit, DNStringableTimeUnit {
         }
     }
 }
-public struct DNTimeAndDay {
+public struct DNTimeAndDayFormat {
+    public var timeFormat:DNTimeFormat
+    public var dayFormat: DNDayFormat
+    public var formatting: TimeAndDayFormatting
+    public enum TimeAndDayFormatting {
+        case timeFirst
+        case dayFirst
+    }
+}
+
+public enum DNTimeAndDayDelimiter: String {
+    case space = " "
+    case period = ". "
+    case comma = ", "
+}
+
+public class DNTimeAndDay: DNTimeUnit {
     public var day: DNDay
     public var time: DNTime
-    public var minuteInterval: Int = 30
-    public var dayInterval = 1
+    public var interval: (day:Int, min: Int) = (1, 30)
+    public var stringValueDelimiter: DNTimeAndDayDelimiter = .space
     
-    public mutating func increaseDay() {
-        day.increase(by: dayInterval)
+    public func increase() {
+        increase(by: interval)
     }
-    public mutating func decreaseDay() {
-        day.decrease(by: dayInterval)
+    public func increase(by interval: (day:Int, min: Int)) {
+        day.increase(by: interval.day)
+        changeTime(increase: true, minuteInterval: interval.min)
     }
-    public mutating func increaseTime() {
-        changeTime(increase: true)
+    public func decrease() {
+        decrease(by: interval)
     }
-    public mutating func decreaseTime() {
-        changeTime(increase: false)
+    public func decrease(by interval: (day:Int, min: Int)) {
+        day.decrease(by: interval.day)
+        changeTime(increase: false, minuteInterval: interval.min)
     }
-    private mutating func changeTime(increase increaseDecrease:Bool) {
+    
+    private func changeTime(increase increaseDecrease:Bool, minuteInterval: Int) {
         guard minuteInterval != 0 else { return }
         var absoluteMinInterval = minuteInterval
         var increase = increaseDecrease
@@ -355,15 +424,38 @@ public struct DNTimeAndDay {
             day.decrease(by: dayCounter)
         }
     }
+    public init(day:DNDay, time:DNTime, minuteInterval: Int, dayInterval:Int) {
+        self.day = day
+        self.time = time
+        self.interval = (dayInterval, minuteInterval)
+    }
+    
+    public func stringValue(forFormat format: DNTimeAndDayFormat) -> String {
+        let timeString = time.stringValue(forFormat: format.timeFormat)
+        let dayString = day.stringValue(forFormat: format.dayFormat)
+        var firstString = timeString
+        var secondString = dayString
+        if format.formatting == .dayFirst {
+            firstString = dayString
+            secondString = timeString
+        }
+        return firstString + stringValueDelimiter.rawValue + secondString
+    }
+    
+    public required convenience init?(stringValue: (time:String, day:String)) {
+        if let day = DNDay(stringValue: stringValue.day),
+            time = DNTime(stringValue: stringValue.time) {
+            self.init(day: day, time:time)
+        } else {
+            return nil
+        }
+    }
 }
 public extension DNTimeAndDay {
-    public init(day: DNDay, time: DNTime) {
+    public convenience init(day: DNDay, time: DNTime) {
         self.init(day: day, time: time, minuteInterval: 30, dayInterval: 1)
     }
-    public init(day:DNDay, time:DNTime, minuteInterval: Int) {
-        self.init(day: day, time: time, minuteInterval: minuteInterval, dayInterval: 1)
-    }
-    public init?(dayString:String, timeString:String, minuteInterval:Int, dayInterval: Int) {
+    public convenience init?(dayString:String, timeString:String, minuteInterval:Int, dayInterval: Int) {
         guard let initDay = DNDay.init(stringValue: dayString) else {
             print("Unable to make day out of string: \(dayString)")
             return nil
@@ -374,14 +466,14 @@ public extension DNTimeAndDay {
         }
         self.init(day:initDay, time: initTime, minuteInterval: minuteInterval, dayInterval: dayInterval)
     }
-    public init?(dayString:String, timeString:String, minuteInterval:Int) {
+    public convenience init?(dayString:String, timeString:String, minuteInterval:Int) {
         self.init(dayString:dayString, timeString:timeString, minuteInterval:minuteInterval, dayInterval: 1)
     }
-    public init?(dayString:String, timeString:String) {
+    public convenience init?(dayString:String, timeString:String) {
         self.init(dayString:dayString, timeString:timeString, minuteInterval:30, dayInterval: 1)
     }
 
-    public init?(dayInt:Int, hourInt:Int, minInt:Int, minuteInterval:Int, dayInterval:Int) {
+    public convenience init?(dayInt:Int, hourInt:Int, minInt:Int, minuteInterval:Int, dayInterval:Int) {
         guard let initDay = DNDay.init(rawValue: dayInt) else {
             print("Unable to make day out of int: \(dayInt)")
             return nil
@@ -392,10 +484,10 @@ public extension DNTimeAndDay {
         }
         self.init(day:initDay, time: initTime, minuteInterval: minuteInterval, dayInterval: dayInterval)
     }
-    public init?(dayInt:Int, hourInt:Int, minInt:Int, minuteInterval:Int) {
+    public convenience init?(dayInt:Int, hourInt:Int, minInt:Int, minuteInterval:Int) {
         self.init(dayInt: dayInt, hourInt: hourInt, minInt: minInt, minuteInterval: minuteInterval, dayInterval: 1)
     }
-    public init?(dayInt:Int, hourInt:Int, minInt:Int) {
+    public convenience init?(dayInt:Int, hourInt:Int, minInt:Int) {
         self.init(dayInt: dayInt, hourInt: hourInt, minInt: minInt, minuteInterval: 30, dayInterval: 1)
     }
 
