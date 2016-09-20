@@ -42,11 +42,24 @@ public protocol DNStringableTimeUnit {
     associatedtype DNTimeAndDayFormat
 }
 
+struct AnyStringableTimeUnit<Format>: DNStringableTimeUnit {
+    private let _stringValue: (Format) -> String
+    init<Base: DNStringableTimeUnit where Format == Base.DNTimeAndDayFormat>(_ base: Base) {
+        _stringValue = base.stringValue
+    }
+    func stringValue<S: DNStringableTimeUnit where S.DNTimeAndDayFormat == Format>(forFormat format: Format) -> String {
+        return _stringValue(format)
+    }
+    init?<S: DNStringableTimeUnit where S.DNTimeAndDayFormat == Format>(stringValue:String) {
+        fatalError("Must use base init for type erasure AnyStringableTimeUnit")
+    }
+}
+
+
 public enum DNDay: Int, DNChangeableTimeUnit, DNStringableTimeUnit {
     //Int/raw values match the Gregorian Calendar day of the week format
     case Sun = 1, Mon, Tues, Wed, Thurs, Fri, Sat
-    public typealias DNTimeAndDayFormat = DNDayFormat
-    public func stringValue(forFormat format: DNTimeAndDayFormat) -> String {
+    public func stringValue(forFormat format: DNDayFormat) -> String {
         switch self {
         case .Sun: return format == .full ? "Sunday" : "Sun"
         case .Mon: return format == .full ? "Monday" : "Mon"
@@ -111,12 +124,11 @@ public enum DNDay: Int, DNChangeableTimeUnit, DNStringableTimeUnit {
 
 
 public struct DNTime: DNChangeableTimeUnit, DNStringableTimeUnit {
-    public typealias DNTimeAndDayFormat = DNTimeFormat
     enum DNAmPm: String{
         case am, pm, format24
     }
-    var hour: Int
-    var min: Int {
+    public var hour: Int
+    public var min: Int {
         didSet{
             if min > 59 || min < 0 {
                 print("Minute cannot be > 59 or < 0, will set as oldValue \(oldValue). File: \(#file), function: \(#function), line: \(#line)")
@@ -199,7 +211,7 @@ public struct DNTime: DNChangeableTimeUnit, DNStringableTimeUnit {
         }
         self.init(hour:hour!, min: min!)
     }
-    public func stringValue(forFormat format:DNTimeAndDayFormat) -> String {
+    public func stringValue(forFormat format:DNTimeFormat) -> String {
         let minString: String
         let hourString: String
         var hour = self.hour
