@@ -238,7 +238,7 @@ class DNTimeAndDaySpec: QuickSpec {
                 })
                 describe("it's comparison to current date static func", closure: {
                     it("s day", closure: {
-                        expect(timeAndDay.day).to(equal(currentTimeAndDay.day))
+                        expect(timeAndDay.day.rawValue).to(equal(currentTimeAndDay.day.rawValue))
                     })
                     it("s hour", closure: {
                         expect(timeAndDay.time.hour).to(equal(currentTimeAndDay.time.hour))
