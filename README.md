@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/cocoapods/l/DNTimeAndDay.svg?style=flat)](http://cocoapods.org/pods/DNTimeAndDay)
 [![Platform](https://img.shields.io/cocoapods/p/DNTimeAndDay.svg?style=flat)](http://cocoapods.org/pods/DNTimeAndDay)
 
-A simple model object to store and adjust time and day of the week. Increase/decrease the time in even intervals***. Output the time string value in 12/24-hour formats (4:00pm vs 16:00). Plans to include date (day, week, month, year).   
+A simple/swifty take on NSDate/NSDateFormatter/NSDateComponent. A DNTimeAndDay object can be initialized with a string value, int value, or date object. The object returns a stringValue in various formats and changes the time and day at a given interval. Only supports Time and Day of the Week at the moment
 
 ## Installation
 

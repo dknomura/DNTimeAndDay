@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
 #   * Finally, don't worry about the indent, CocoaPods strips it!
 
   s.description      = <<-DESC
-A DNTimeAndDay object is initialized with a string value or int value for time and day along with 12/24hr time format. Developers can set an interval at which the object can be increased/decreased, default is 30 minutes.
+A simple/swifty take on NSDate/NSDateFormatter/NSDateComponent. A DNTimeAndDay object can be initialized with a string value, int value, or date object. The object returns a stringValue in various formats and changes the time and day at a given interval. Only supports Time and Day of the Week at the moment
                        DESC
 
   s.homepage         = 'https://github.com/dknomura/DNTimeAndDay'
