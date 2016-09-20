@@ -6,46 +6,76 @@ import Nimble
 @testable import DNTimeAndDay
 
 class DNTimeAndDaySpec: QuickSpec {
+
     override func spec() {
         var timeAndDay: DNTimeAndDay!
+        let formatAbbr24 = DNTimeAndDayFormat.init(time: .format24Hour, day: .abbr)
+        let formatFull12 = DNTimeAndDayFormat.init(time: .format12Hour, day: .full)
+        describe("TimeUnit protocol") {
+            let day = DNDay.Mon
+            let time = DNTime.init(hour: 12, min: 30)!
+            var timeOrDay: DNTimeUnit = time
+            describe("Changing to and from day/time", {
+                it("increases day, changes to time, and increases", closure: {
+                    timeOrDay = day
+                    expect(timeOrDay.stringValue(forFormat: formatAbbr24)).to(equal("Mon"))
+                    timeOrDay.increase(by: 1)
+                    expect(timeOrDay.stringValue(forFormat: formatAbbr24)).to(equal("Tues"))
+                    timeOrDay = time
+                    expect(timeOrDay.stringValue(forFormat: formatAbbr24)).to(equal("12:30"))
+                    timeOrDay.increase(by: 30)
+                    expect(timeOrDay.stringValue(forFormat: formatAbbr24)).to(equal("13:00"))
+                })
+                it("decreases time, changes to day, and decreases", closure: {
+                    expect(timeOrDay.stringValue(forFormat: formatFull12)).to(equal("12:30pm"))
+                    timeOrDay.decrease(by: 90)
+                    expect(timeOrDay.stringValue(forFormat: formatFull12)).to(equal("11:00am"))
+                    timeOrDay = day
+                    expect(timeOrDay.stringValue(forFormat: formatFull12)).to(equal("Monday"))
+                    timeOrDay.decrease(by: 3)
+                    expect(timeOrDay.stringValue(forFormat: formatFull12)).to(equal("Friday"))
+                })
+                
+            })
+        }
         describe("String values") {
             beforeEach({ 
                 timeAndDay = DNTimeAndDay.init(dayString: "W", timeString: "9p")
             })
             describe("Day", { 
                 it("checks and increases a day", closure: { 
-                    expect(timeAndDay.day.stringValue(forFormat: .abbr)).to(equal("Wed"))
-                    expect(timeAndDay.day.stringValue(forFormat: .full)).to(equal("Wednesday"))
+                    expect(timeAndDay.day.stringValue(forFormat: formatAbbr24)).to(equal("Wed"))
+                    expect(timeAndDay.day.stringValue(forFormat: formatFull12)).to(equal("Wednesday"))
                     timeAndDay.increaseDay()
-                    expect(timeAndDay.day.stringValue(forFormat: .abbr)).to(equal("Thurs"))
-                    expect(timeAndDay.day.stringValue(forFormat: .full)).to(equal("Thursday"))
+                    expect(timeAndDay.day.stringValue(forFormat: formatAbbr24)).to(equal("Thurs"))
+                    expect(timeAndDay.day.stringValue(forFormat: formatFull12)).to(equal("Thursday"))
                 })
             })
             describe("Time", {
                 context("24-Hour time format", {
                     it("is at night", closure: {
-                        expect(timeAndDay.time.stringValue(forFormat: .format24Hour)).to(equal("21:00"))
+                        expect(timeAndDay.time.stringValue(forFormat: formatAbbr24)).to(equal("21:00"))
                         timeAndDay.increaseTime()
-                        expect(timeAndDay.time.stringValue(forFormat: .format24Hour)).to(equal("21:30"))
+                        expect(timeAndDay.time.stringValue(forFormat: formatAbbr24)).to(equal("21:30"))
                     })
                     it("is in the morning", closure: { 
                         timeAndDay = DNTimeAndDay.init(dayInt: 6, hourInt: 8, minInt: 30)
-                        expect(timeAndDay.time.stringValue(forFormat: .format24Hour)).to(equal("08:30"))
+                        expect(timeAndDay.time.stringValue(forFormat: formatAbbr24)).to(equal("08:30"))
                         timeAndDay.increaseTime()
-                        expect(timeAndDay.time.stringValue(forFormat: .format24Hour)).to(equal("09:00"))
+                        expect(timeAndDay.time.stringValue(forFormat: formatAbbr24)).to(equal("09:00"))
                     })
                 })
                 context("12-Hour time format", {
                     it("is at night", closure: {
-                        expect(timeAndDay.time.stringValue(forFormat: .format12Hour)).to(equal("9:00pm"))
+                        expect(timeAndDay.time.stringValue(forFormat: formatFull12)).to(equal("9:00pm"))
                         timeAndDay.increaseTime()
-                        expect(timeAndDay.time.stringValue(forFormat: .format12Hour)).to(equal("9:30pm"))
+                        expect(timeAndDay.time.stringValue(forFormat: formatFull12)).to(equal("9:30pm"))
                     })
                     it("is in the morning", closure: {
                         timeAndDay = DNTimeAndDay.init(dayInt: 6, hourInt: 8, minInt: 30)
-                        expect(timeAndDay.time.stringValue(forFormat: .format12Hour)).to(equal("8:30am"))
+                        expect(timeAndDay.time.stringValue(forFormat: formatFull12)).to(equal("8:30am"))
                         timeAndDay.increaseTime()
-                        expect(timeAndDay.time.stringValue(forFormat: .format12Hour)).to(equal("9:00am"))
+                        expect(timeAndDay.time.stringValue(forFormat: formatFull12)).to(equal("9:00am"))
                     })
                 })
             })
@@ -238,7 +268,7 @@ class DNTimeAndDaySpec: QuickSpec {
                 })
                 describe("it's comparison to current date static func", closure: {
                     it("s day", closure: {
-                        expect(timeAndDay.day).to(equal(currentTimeAndDay.day))
+                        expect(timeAndDay.day.rawValue).to(equal(currentTimeAndDay.day.rawValue))
                     })
                     it("s hour", closure: {
                         expect(timeAndDay.time.hour).to(equal(currentTimeAndDay.time.hour))

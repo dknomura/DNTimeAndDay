@@ -21,7 +21,6 @@ import Foundation
 public enum DNTimeAndDayError: ErrorType {
     case invalidMinuteInterval(Int)
 }
-
 public enum DNTimeFormat: String {
     case format24Hour = "24-Hour"
     case format12Hour = "12-Hour"
@@ -30,45 +29,57 @@ public enum DNDayFormat: String {
     case full
     case abbr
 }
+public struct DNTimeAndDayFormat {
+    public var time: DNTimeFormat
+    public var day: DNDayFormat
+    public init(time: DNTimeFormat, day: DNDayFormat) {
+        self.time = time
+        self.day = day
+    }
+}
 
-public protocol DNChangeableTimeUnit {
+public protocol DNTimeUnit {
     mutating func increase(by interval:Int)
     mutating func decrease(by interval:Int)
-}
-
-public protocol DNStringableTimeUnit {
     func stringValue(forFormat format: DNTimeAndDayFormat) -> String
     init?(stringValue: String)
-    associatedtype DNTimeAndDayFormat
 }
-
-struct AnyStringableTimeUnit<Format>: DNStringableTimeUnit {
-    private let _stringValue: (Format) -> String
-    init<Base: DNStringableTimeUnit where Format == Base.DNTimeAndDayFormat>(_ base: Base) {
-        _stringValue = base.stringValue
-    }
-    func stringValue<S: DNStringableTimeUnit where S.DNTimeAndDayFormat == Format>(forFormat format: Format) -> String {
-        return _stringValue(format)
-    }
-    init?<S: DNStringableTimeUnit where S.DNTimeAndDayFormat == Format>(stringValue:String) {
-        fatalError("Must use base init for type erasure AnyStringableTimeUnit")
-    }
-}
-
-
-public enum DNDay: Int, DNChangeableTimeUnit, DNStringableTimeUnit {
+public enum DNDay: Int, DNTimeUnit {
     //Int/raw values match the Gregorian Calendar day of the week format
     case Sun = 1, Mon, Tues, Wed, Thurs, Fri, Sat
-    public func stringValue(forFormat format: DNDayFormat) -> String {
+    public func stringValue(forFormat format: DNTimeAndDayFormat) -> String {
         switch self {
-        case .Sun: return format == .full ? "Sunday" : "Sun"
-        case .Mon: return format == .full ? "Monday" : "Mon"
-        case .Tues: return format == .full ? "Tuesday" : "Tues"
-        case .Wed: return format == .full ? "Wednesday" : "Wed"
-        case .Thurs: return format == .full ? "Thursday" : "Thurs"
-        case .Fri: return format == .full ? "Friday" : "Fri"
-        case .Sat: return format == .full ? "Saturday" : "Sat"
+        case .Sun: return format.day == .full ? "Sunday" : "Sun"
+        case .Mon: return format.day == .full ? "Monday" : "Mon"
+        case .Tues: return format.day == .full ? "Tuesday" : "Tues"
+        case .Wed: return format.day == .full ? "Wednesday" : "Wed"
+        case .Thurs: return format.day == .full ? "Thursday" : "Thurs"
+        case .Fri: return format.day == .full ? "Friday" : "Fri"
+        case .Sat: return format.day == .full ? "Saturday" : "Sat"
         }
+    }
+    public init?(stringValue: String) {
+        let lowerCase = stringValue.lowercaseString
+        let rawValue: Int
+        switch lowerCase {
+        case "su", "sun", "sund", "sunda", "sunday", "7":
+            rawValue = 1
+        case "m", "mo", "mon", "mond", "monda", "monday", "1":
+            rawValue = 2
+        case "t", "tu", "tue", "tues", "tuesday", "2":
+            rawValue = 3
+        case "w", "we", "wed", "wedn", "wedne",  "wednes", "wednesday", "3":
+            rawValue = 4
+        case "th", "thu", "thur", "thurs", "thursday", "4":
+            rawValue = 5
+        case "f", "fr", "fri", "frid", "friday", "5":
+            rawValue = 6
+        case "s", "sa", "sat", "satu", "satur", "saturday", "6":
+            rawValue = 7
+        default:
+            return nil
+        }
+        self.init(rawValue: rawValue)
     }
     static let allValues: [DNDay] = [Sun, Mon, Tues, Wed, Thurs, Fri, Sat]
     enum DayError: ErrorType {
@@ -97,33 +108,10 @@ public enum DNDay: Int, DNChangeableTimeUnit, DNStringableTimeUnit {
             dayInt = dayInt % 7 + 7
         }
     }
-    public init?(stringValue: String) {
-        let lowerCase = stringValue.lowercaseString
-        let rawValue: Int
-        switch lowerCase {
-        case "su", "sun", "sund", "sunda", "sunday", "7":
-            rawValue = 1
-        case "m", "mo", "mon", "mond", "monda", "monday", "1":
-            rawValue = 2
-        case "t", "tu", "tue", "tues", "tuesday", "2":
-            rawValue = 3
-        case "w", "we", "wed", "wedn", "wedne",  "wednes", "wednesday", "3":
-            rawValue = 4
-        case "th", "thu", "thur", "thurs", "thursday", "4":
-            rawValue = 5
-        case "f", "fr", "fri", "frid", "friday", "5":
-            rawValue = 6
-        case "s", "sa", "sat", "satu", "satur", "saturday", "6":
-            rawValue = 7
-        default:
-            return nil
-        }
-        self.init(rawValue: rawValue)
-    }
 }
 
 
-public struct DNTime: DNChangeableTimeUnit, DNStringableTimeUnit {
+public struct DNTime: DNTimeUnit {
     enum DNAmPm: String{
         case am, pm, format24
     }
@@ -211,12 +199,12 @@ public struct DNTime: DNChangeableTimeUnit, DNStringableTimeUnit {
         }
         self.init(hour:hour!, min: min!)
     }
-    public func stringValue(forFormat format:DNTimeFormat) -> String {
+    public func stringValue(forFormat format:DNTimeAndDayFormat) -> String {
         let minString: String
         let hourString: String
         var hour = self.hour
         var amPM = ""
-        if format == DNTimeFormat.format12Hour {
+        if format.time == .format12Hour {
             if hour == 0 {
                 hour = 12
                 amPM = "am"
