@@ -22,63 +22,21 @@ public enum DNTimeAndDayError: ErrorType {
     case invalidMinuteInterval(Int)
 }
 
-public enum DNTimeFormat: String {
+public enum DNTimeAndDayFormat: String {
     case format24Hour = "24-Hour"
     case format12Hour = "12-Hour"
-}
-public enum DNDayFormat: String {
     case full
     case abbr
 }
 
 public protocol DNTimeUnit: class {
-    var interval: Interval { get set }
-    func increase(by interval:Interval)
-    func decrease(by interval:Interval)
+    var interval: Int { get set }
+    func increase(by interval:Int)
+    func decrease(by interval:Int)
     func increase()
     func decrease()
-    func stringValue(forFormat format: TimeAndDayFormat) -> String
-    init?(stringValue: StringValue)
-    associatedtype TimeAndDayFormat
-    associatedtype Interval
-    associatedtype StringValue
+    func stringValue(forFormat format: DNTimeAndDayFormat) -> String
 }
-
-public class AnyTimeUnit<Format, Interval, StringValue>: DNTimeUnit {
-    private let _stringValue: (Format) -> String
-    private let _increaseBy:(by: Interval) -> ()
-    private let _decreaseBy:(by: Interval) -> ()
-    private let _increase: () -> Void
-    private let _decrease: () -> Void
-    public var interval: Interval
-    public init<Base: DNTimeUnit where Format == Base.TimeAndDayFormat, Interval == Base.Interval, StringValue == Base.StringValue>(_ base: Base) {
-        _stringValue = base.stringValue
-        _increaseBy = base.increase(by:)
-        _decreaseBy = base.decrease(by:)
-        _decrease = base.decrease
-        _increase = base.increase
-        interval = base.interval
-    }
-    public func stringValue<S: DNTimeUnit where S.TimeAndDayFormat == Format>(forFormat format: Format) -> String {
-        return _stringValue(format)
-    }
-    public func decrease(by interval: Interval) {
-        _decreaseBy(by: interval)
-    }
-    public func increase(by interval: Interval) {
-        _increaseBy(by: interval)
-    }
-    public func decrease() {
-        _decrease()
-    }
-    public func increase() {
-        _increase()
-    }
-    public required init?(stringValue:String) {
-        fatalError("Must use base init for type erasure AnyStringableTimeUnit")
-    }
-}
-
 
 public class DNDay: DNTimeUnit {
     //Int/raw values match the Gregorian Calendar day of the week format
@@ -97,7 +55,7 @@ public class DNDay: DNTimeUnit {
             rawValue = returnValue
         }
     }
-    public func stringValue(forFormat format: DNDayFormat) -> String {
+    public func stringValue(forFormat format: DNTimeAndDayFormat) -> String {
         switch rawValue {
         case 1: return format == .full ? "Sunday" : "Sun"
         case 2: return format == .full ? "Monday" : "Mon"
@@ -254,12 +212,12 @@ public class DNTime: DNTimeUnit {
         }
         self.init(hour:hour!, min: min!)
     }
-    public func stringValue(forFormat format:DNTimeFormat) -> String {
+    public func stringValue(forFormat format:DNTimeAndDayFormat) -> String {
         let minString: String
         let hourString: String
         var hour = self.hour
         var amPM = ""
-        if format == DNTimeFormat.format12Hour {
+        if format == DNTimeAndDayFormat.format12Hour {
             if hour == 0 {
                 hour = 12
                 amPM = "am"
@@ -365,44 +323,28 @@ public class DNTime: DNTimeUnit {
         }
     }
 }
-public struct DNTimeAndDayFormat {
-    public var timeFormat:DNTimeFormat
-    public var dayFormat: DNDayFormat
-    public var formatting: TimeAndDayFormatting
-    public enum TimeAndDayFormatting {
-        case timeFirst
-        case dayFirst
-    }
-}
 
-public enum DNTimeAndDayDelimiter: String {
-    case space = " "
-    case period = ". "
-    case comma = ", "
-}
-
-public class DNTimeAndDay: DNTimeUnit {
+public class DNTimeAndDay {
     public var day: DNDay
     public var time: DNTime
-    public var interval: (day:Int, min: Int) = (1, 30)
-    public var stringValueDelimiter: DNTimeAndDayDelimiter = .space
+    public var minuteInterval = 30
+    public var dayInterval = 1
+    public var stringValueDelimiter = " "
     
-    public func increase() {
-        increase(by: interval)
+    public func increaseDay() {
+        day.increase(by: dayInterval)
     }
-    public func increase(by interval: (day:Int, min: Int)) {
-        day.increase(by: interval.day)
-        changeTime(increase: true, minuteInterval: interval.min)
+    public func decreaseDay() {
+        day.decrease(by: dayInterval)
     }
-    public func decrease() {
-        decrease(by: interval)
+    public func increaseTime() {
+        changeTime(increase: true)
     }
-    public func decrease(by interval: (day:Int, min: Int)) {
-        day.decrease(by: interval.day)
-        changeTime(increase: false, minuteInterval: interval.min)
+    public func decreaseTime() {
+        changeTime(increase: false)
     }
     
-    private func changeTime(increase increaseDecrease:Bool, minuteInterval: Int) {
+    private func changeTime(increase increaseDecrease:Bool) {
         guard minuteInterval != 0 else { return }
         var absoluteMinInterval = minuteInterval
         var increase = increaseDecrease
@@ -427,21 +369,10 @@ public class DNTimeAndDay: DNTimeUnit {
     public init(day:DNDay, time:DNTime, minuteInterval: Int, dayInterval:Int) {
         self.day = day
         self.time = time
-        self.interval = (dayInterval, minuteInterval)
+        self.dayInterval = dayInterval
+        self.minuteInterval = minuteInterval
     }
-    
-    public func stringValue(forFormat format: DNTimeAndDayFormat) -> String {
-        let timeString = time.stringValue(forFormat: format.timeFormat)
-        let dayString = day.stringValue(forFormat: format.dayFormat)
-        var firstString = timeString
-        var secondString = dayString
-        if format.formatting == .dayFirst {
-            firstString = dayString
-            secondString = timeString
-        }
-        return firstString + stringValueDelimiter.rawValue + secondString
-    }
-    
+        
     public required convenience init?(stringValue: (time:String, day:String)) {
         if let day = DNDay(stringValue: stringValue.day),
             time = DNTime(stringValue: stringValue.time) {
