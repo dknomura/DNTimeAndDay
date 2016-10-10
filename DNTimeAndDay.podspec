@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'DNTimeAndDay'
-  s.version          = '0.1.9'
+  s.version          = '0.2.1'
   s.summary          = 'A model struct to iterate through the time and day at a given interval.'
 
 # This description is used to generate tags and improve search results.
