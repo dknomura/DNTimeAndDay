@@ -125,7 +125,7 @@ public struct DNTime: DNTimeUnit {
         }
     }
     
-    init?(hour: Int, min:Int) {
+    public init?(hour: Int, min:Int) {
         if (hour >= 0 && hour < 24) && (min >= 0 && min < 60) {
             self.hour = hour
             self.min = min
