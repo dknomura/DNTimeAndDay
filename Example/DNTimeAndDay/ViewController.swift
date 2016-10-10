@@ -22,8 +22,8 @@ class ViewController: UIViewController, UITextFieldDelegate {
     }
     
     var timeAndDayDisplay: DNTimeAndDay = DNTimeAndDay.init(dayString: "m", timeString: "12")!
-    var timeFormat: DNTimeFormat = .format12Hour
-    var dayFormat: DNDayFormat = .full
+    var timeFormat: DNTimeAndDayFormat = .format12Hour
+    var dayFormat: DNTimeAndDayFormat = .full
     
     override func viewDidLoad() {
         super.viewDidLoad()
