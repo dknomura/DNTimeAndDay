@@ -22,8 +22,12 @@ class ViewController: UIViewController, UITextFieldDelegate {
     }
     
     var timeAndDayDisplay: DNTimeAndDay = DNTimeAndDay.init(dayString: "m", timeString: "12")!
+<<<<<<< HEAD
     var timeFormat: DNTimeAndDayFormat = .format12Hour
     var dayFormat: DNTimeAndDayFormat = .full
+=======
+    var timeAndDayFormat: DNTimeAndDayFormat = DNTimeAndDayFormat(time:.format12Hour, day:.full)
+>>>>>>> 5fd66633f5187d9eb923592e8dd5022c460c09c1
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,23 +41,14 @@ class ViewController: UIViewController, UITextFieldDelegate {
     }
 
     @IBAction func switchTimeFormat(sender: UISwitch) {
-        if sender.on {
-            timeFormat = .format12Hour
-        } else {
-            timeFormat = .format24Hour
-        }
-        timeTextField.text = timeAndDayDisplay.time.stringValue(forFormat: timeFormat)
-        timeFormatLabel.text = timeFormat.rawValue
+        timeAndDayFormat.time = sender.on ? .format12Hour : .format24Hour
+        timeTextField.text = timeAndDayDisplay.time.stringValue(forFormat: timeAndDayFormat)
+        timeFormatLabel.text = timeAndDayFormat.time.rawValue
     }
-    
     @IBAction func switchDayFormat(sender: UISwitch) {
-        if sender.on {
-            dayFormat = .full
-        } else {
-            dayFormat = .abbr
-        }
-        dayTextField.text = timeAndDayDisplay.day.stringValue(forFormat: dayFormat)
-        dayFormatLabel.text = dayFormat == .full ? "Full Day" : "Abbr Day"
+        timeAndDayFormat.day = sender.on ? .full : .abbr
+        dayTextField.text = timeAndDayDisplay.day.stringValue(forFormat:timeAndDayFormat)
+        dayFormatLabel.text = timeAndDayFormat.day == .full ? "Full Day" : "Abbr Day"
     }
     
     @IBAction func setCurrentTimeAndDay(sender: UIButton) {
@@ -87,8 +82,8 @@ class ViewController: UIViewController, UITextFieldDelegate {
     }
     
     private func setTextFields() {
-        dayTextField.text = timeAndDayDisplay.day.stringValue(forFormat: dayFormat)
-        timeTextField.text = timeAndDayDisplay.time.stringValue(forFormat:timeFormat)
+        dayTextField.text = timeAndDayDisplay.day.stringValue(forFormat: timeAndDayFormat)
+        timeTextField.text = timeAndDayDisplay.time.stringValue(forFormat:timeAndDayFormat)
         intervalTextField.text = String(timeAndDayDisplay.minuteInterval)
     }
 
