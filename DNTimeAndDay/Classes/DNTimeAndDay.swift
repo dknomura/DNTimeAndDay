@@ -5,17 +5,6 @@
 //  Created by Daniel Nomura on 9/7/16.
 //
 //
-
-//: Playground - noun: a place where people can play
-//
-//
-//  DNTimeAndDay.swift
-//  Pods
-//
-//  Created by Daniel Nomura on 9/7/16.
-
-
-
 import Foundation
 
 public enum DNTimeAndDayError: ErrorType {
